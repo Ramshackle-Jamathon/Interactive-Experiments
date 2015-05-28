@@ -1,0 +1,386 @@
+/*
+ * Fractal Flyer
+ *
+ * Joseph Van Drunen -- March 2015
+ */
+if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+var fractal = {
+    container: document.getElementById( 'container' ),
+    stats: new Stats(),
+    clock: new THREE.Clock(),
+    camera: new THREE.Camera(),
+    movementCamera: new THREE.Camera(),
+    scene: new THREE.Scene(),
+    renderer: new THREE.WebGLRenderer( { antialias: true } ),
+    time: 0.1,
+    quality: 1.5,
+    fractalPaused: false,
+    minimumDistance: 0.005,
+    normalDistance: 0.05,
+    anaglyph: false,
+    forms: 3,
+    spaceFolding: 1,
+    showControls: function(){
+        alert("Fractal Flyer \n\nControls:\n WASD: Movement\n QE: Roll \n ZX: Speed\n G: (Un)Freeze Camera")
+    
+    }
+    
+}
+$(document).ready(function () { 
+    fractal.loadResources();
+    fractal.showControls();     
+});
+
+fractal.loadResources = function() {
+    try {
+        // Fix up for prefixing
+        window.AudioContext = window.AudioContext||window.webkitAudioContext;
+        fractal.audioContext = new AudioContext();
+        fractal.audioBuffer = undefined;
+        fractal.audioAnalyser = fractal.audioContext.createAnalyser();
+        var req = new XMLHttpRequest(); 
+        req.open("GET","textures/skydancer2.mp3",true); 
+        req.responseType = "arraybuffer"; 
+        req.onload = function() { 
+            //decode the loaded data 
+            fractal.audioContext.decodeAudioData(req.response, function(buffer) { 
+                fractal.audioBuffer = buffer; 
+                fractal.audioSource = fractal.audioContext.createBufferSource();  
+                fractal.audioSource.buffer = fractal.audioBuffer; 
+                fractal.audioSource.connect(fractal.audioAnalyser); 
+                //connect to the final output node (the speakers) 
+                fractal.audioAnalyser.connect(fractal.audioContext.destination);
+                //play immediately 
+                fractal.audioSource.start(0); 
+                fractal.init();
+            }); 
+        }; 
+        req.send(); 
+    }catch(e) {
+        alert('Web Audio API is not supported in this browser'); 
+        fractal.init();
+    }
+    
+}
+
+
+fractal.init = function() {   
+    fractal.gui = new dat.GUI({
+        load : {
+            preset: "Default",
+            remembered: {
+                "Default":{0:{
+                    "quality": 0.7,
+                    "minimumDistance": 0.005,
+                    "normalDistance": 0.05,
+                    "time": 0.1,
+                    "fractalPaused": false,
+                    "anaglyph": false,
+                    "forms": "1",
+                    "spaceFolding": "1"
+                    }},
+                "Tiny Tubes":{0:{
+                    "quality": 0.7,
+                    "minimumDistance": 0.0001,
+                    "normalDistance": 0.01,
+                    "time": 0.0,
+                    "fractalPaused": true,
+                    "anaglyph": false,
+                    "forms": "3",
+                    "spaceFolding": "1"
+                    }},
+                "Cubic Corpuscles":{0:{
+                    "quality": 0.7,
+                    "minimumDistance": 0.0001,
+                    "normalDistance": 0.0001,
+                    "time": 32.514817950889075,
+                    "fractalPaused": true,
+                    "anaglyph": false,
+                    "forms": "1",
+                    "spaceFolding": "1"
+                }},
+                "Surfer":{0:{
+                    "quality": 0.7,
+                    "minimumDistance": 0.0303,
+                    "normalDistance": 0.236,
+                    "time": 105.35,
+                    "fractalPaused": true,
+                    "anaglyph": false,
+                    "forms": "4",
+                    "spaceFolding": "0"
+                }}
+            },
+            "closed": false,
+            "folders": {}
+        }
+    });
+    
+    //menu
+    //note: .listen() will listen for changes to the variable but cause frame stuters DO NOT USE
+    fractal.gui.remember(fractal)
+    fractal.qualityControl = fractal.gui.add(fractal, 'quality', 0.1, 2.0).step(0.1);
+    fractal.minDistanceControl = fractal.gui.add(fractal, 'minimumDistance', 0, 0.1);
+    fractal.normalControl = fractal.gui.add(fractal, 'normalDistance', -1.0, 1.0);   
+    fractal.timeControl = fractal.gui.add(fractal, 'time', 0.0, 120.0);   
+    fractal.pausedControl = fractal.gui.add(fractal, 'fractalPaused'); 
+    fractal.anaglyphControl = fractal.gui.add(fractal, 'anaglyph');    
+    fractal.formsControl = fractal.gui.add(fractal, 'forms', { Cubes: 1, Planes: 2, Tubes: 3, Dots: 4 });    
+    fractal.spaceFoldControl = fractal.gui.add(fractal, 'spaceFolding', {"1D": -1, "2D": 0, "3D": 1});  
+    fractal.infoControl = fractal.gui.add(fractal, 'showControls');
+    
+
+
+
+    fractal.audioAnalyser.fftSize = 256;
+    var bufferLength = fractal.audioAnalyser.frequencyBinCount;
+    var dataArray = new Uint8Array(bufferLength);
+
+    //make independent camera since we are doing pure shader graphics
+    fractal.controls = new THREE.FlyControls( fractal.movementCamera );
+    fractal.controls.movementSpeed = 1.0;
+	fractal.controls.domElement = fractal.container;
+	fractal.controls.rollSpeed = Math.PI / 3;
+	fractal.controls.autoForward = false;
+	fractal.controls.dragToLook = false;
+    
+    var urls = [
+      'textures/pos-x.png',
+      'textures/neg-x.png',
+      'textures/pos-y.png',
+      'textures/neg-y.png',
+      'textures/pos-z.png',
+      'textures/neg-z.png'
+    ]
+    // wrap it up into the object that we need
+    THREE.ImageUtils.crossOrigin = "";
+    var textureImage = THREE.ImageUtils.loadTextureCube(urls);
+  
+    console.log("before Shader")
+    fractal.tuniform = {
+        iGlobalTime:    { type: 'f', value: fractal.time },
+        iMinimumDistance:    { type: 'f', value: fractal.minimumDistance },
+        iNormalDistance:    { type: 'f', value: fractal.normalDistance },
+        iChannel0:  { type: 't', value: textureImage },
+        iAnaglyph:  { type: 'i', value: 0 },
+        iForms:  { type: 'i', value: fractal.forms},
+        iSpaceFolding:  { type: 'i', value: fractal.spaceFolding},
+        iResolution: { type:"v2", value:new THREE.Vector2(window.innerWidth,window.innerHeight) },
+        iCamPosition: { type:"v3", value:new THREE.Vector3(1.0,0.0,0.0) },
+        iCamDir: { type:"v3", value:new THREE.Vector3(1.0,0.0,0.0) },
+        iCamUp: { type:"v3", value:new THREE.Vector3(0.0,1.0,0.0) }
+    };
+    var mat = new THREE.ShaderMaterial( {
+            uniforms: fractal.tuniform,
+            vertexShader: document.getElementById('vertexShader').textContent,
+            fragmentShader: document.getElementById('fragmentShader').textContent
+        });
+    
+    mat.lights = false;
+    mat.shading = THREE.FlatShading;
+    var fractalMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(2, 2, 0), mat);
+    
+    // The bg plane shouldn't care about the z-buffer.
+    fractalMesh.material.depthTest = false;
+    fractalMesh.material.depthWrite = false;
+    console.log("after Shader")
+
+
+    
+	//fractal.scene.fog = new THREE.FogExp2( 0xcccccc, 0.001 );
+    fractal.scene.add(fractal.camera);
+    fractal.scene.add(fractalMesh);
+    console.log("shader Added")
+	
+	// renderer
+	//fractal.renderer.setClearColor( fractal.scene.fog.color );
+	fractal.renderer.setPixelRatio( window.devicePixelRatio );
+	fractal.renderer.setSize( window.innerWidth, window.innerHeight );
+
+	
+	
+	fractal.container.appendChild( fractal.renderer.domElement );
+
+	fractal.stats.domElement.style.position = 'absolute';
+	fractal.stats.domElement.style.top = '0px';
+	fractal.stats.domElement.style.zIndex = 100;
+	fractal.container.appendChild( fractal.stats.domElement );
+	
+	
+	//hardware acceleration for webkit
+	fractal.resizePerformance();
+	
+    window.addEventListener( 'keypress', fractal.keyPress);
+    
+    
+    
+    fractal.qualityControl.onChange(function(value) {
+        fractal.resizePerformance()
+    });
+    fractal.minDistanceControl.onChange(function(value) {
+        fractal.tuniform.iMinimumDistance.value = value;
+    });
+    fractal.normalControl.onChange(function(value) {
+        fractal.tuniform.iNormalDistance.value = value;
+    });
+    fractal.timeControl.onChange(function(value) {
+        fractal.tuniform.iGlobalTime.value = value;
+    });
+    fractal.anaglyphControl.onFinishChange(function(value) {
+        fractal.tuniform.iAnaglyph.value = value;
+    });
+    fractal.formsControl.onFinishChange(function(value) {
+        fractal.tuniform.iForms.value = value;
+    });
+    fractal.spaceFoldControl.onFinishChange(function(value) {
+        fractal.tuniform.iSpaceFolding.value = value;
+    });
+    
+ /*   [fractal.timeControl, fractal.qualityControl, fractal.minDistanceControl, fractal.normalControl, fractal.pausedControl].forEach(function(control){
+        control.onFinishChange(function(value) {
+            $(fractal.container).click();
+            return false;
+        });
+    });*/
+   
+	window.addEventListener( 'resize', fractal.onWindowResize, false ); 
+    console.log("init Complete")
+	fractal.render();
+}
+
+fractal.onWindowResize = function() {
+
+    //hardware acceleration for webkit
+	fractal.renderer.setSize( window.innerWidth, window.innerHeight );
+	fractal.resizePerformance();
+    fractal.tuniform.iResolution.value.set(window.innerWidth,  window.innerHeight);
+
+	fractal.render();
+
+}
+fractal.keyPress = function(e){
+    console.log(e.keyCode)
+    switch(e.keyCode){
+        //Movement speed
+        case 122:
+            fractal.controls.movementSpeed += 0.05
+            break;
+        case 120:
+            if(fractal.controls.movementSpeed > 0){
+                fractal.controls.movementSpeed -= 0.05  
+            }
+            break;
+        // paused
+        case 103:
+            fractal.controls.paused = !fractal.controls.paused 
+            break;
+            
+        //3d anaglyphVision
+       /* case 112:
+            fractal.tuniform.iAnaglyph.value = 1 - fractal.tuniform.iAnaglyph.value;
+            if(fractal.tuniform.iAnaglyph.value == 1){
+                $('#messages').prepend("Anaglyph: ON <br>");	
+            } else {
+                $('#messages').prepend("Anaglyph: OFF <br>");
+            }
+            break;
+        //quality
+        case 61:
+            fractal.quality -= 0.1;
+            console.log(fractal.quality);
+            $('#messages').prepend("quality: " + fractal.quality + "<br>");	
+            fractal.resizePerformance();
+            break;
+        case 45:
+            fractal.quality += 0.1;
+            console.log(fractal.quality);
+            $('#messages').prepend("quality: " + fractal.quality + "<br>");	
+            fractal.resizePerformance();
+            break;
+        // paused
+        case 32:
+            fractal.paused = !fractal.paused
+            break;
+        // rayMarch Forms
+        case 49:
+            $('#messages').prepend("Cube Forms <br>");	
+            fractal.tuniform.iForms.value = 1;
+            break;
+        case 50:
+            $('#messages').prepend("Plane Forms <br>");	
+            fractal.tuniform.iForms.value = 2;
+            break;
+        case 51:
+            $('#messages').prepend("Tube Forms <br>");
+            fractal.tuniform.iForms.value = 3;
+            break;
+        case 52:
+            $('#messages').prepend("Point Forms <br>");
+            fractal.tuniform.iForms.value = 4;
+            break;
+        // Space Folding
+        case 53:
+            fractal.tuniform.iSpaceFolding.value = 1 - fractal.tuniform.iSpaceFolding.value;
+            if (fractal.tuniform.iSpaceFolding.value == 0){
+                $('#messages').prepend("2D Space Folding <br>");
+            } else {
+                $('#messages').prepend("3D Space Folding <br>");
+            }
+            break;
+        // Normal Distance
+        case 91:
+            fractal.tuniform.iNormalDistance.value -= 0.01
+            $('#messages').prepend("Normal Distance: " + fractal.tuniform.iNormalDistance.value + "<br>");	
+            break;
+        case 93:
+            fractal.tuniform.iNormalDistance.value += 0.01
+            $('#messages').prepend("Normal Distance: " + fractal.tuniform.iNormalDistance.value + "<br>");	
+            break;
+        // Normal Distance
+        case 39:
+            fractal.tuniform.iMinimumDistance.value *= 0.005
+            $('#messages').prepend("Minimum Distance: " + fractal.tuniform.iMinimumDistance.value + "<br>");	
+            break;
+        case 59:
+            fractal.tuniform.iMinimumDistance.value /= 0.005
+            $('#messages').prepend("Minimum Distance: " + fractal.tuniform.iMinimumDistance.value + "<br>");	
+            break;
+        */
+        
+    }    
+}
+
+fractal.resizePerformance = function() {
+	fractal.renderer.setSize( window.innerWidth * fractal.quality, window.innerHeight * fractal.quality );
+	fractal.renderer.domElement.style.width =  window.innerWidth + 'px';
+    fractal.renderer.domElement.style.height = window.innerHeight + 'px';
+
+}
+
+fractal.updateCameraPosition = function() {
+    var vectorDir = new THREE.Vector3( 0, 0, -1 );
+    vectorDir.applyQuaternion( fractal.movementCamera.quaternion ).normalize();
+    var vectorUp = new THREE.Vector3( 0, 1, 0 );
+    vectorUp.applyQuaternion( fractal.movementCamera.quaternion ).normalize();
+
+    fractal.tuniform.iCamDir.value.set(vectorDir.x, vectorDir.y, vectorDir.z);
+    fractal.tuniform.iCamUp.value.set(vectorUp.x, vectorUp.y, vectorUp.z);
+    fractal.tuniform.iCamPosition.value.set(fractal.movementCamera.position.x, fractal.movementCamera.position.y, fractal.movementCamera.position.z);
+}
+
+fractal.render = function() {
+    requestAnimationFrame( fractal.render );
+    fractal.renderer.render(fractal.scene, fractal.camera);
+    fractal.stats.update();
+    delta=fractal.clock.getDelta();
+    fractal.controls.update(delta);
+    fractal.updateCameraPosition();
+    if( ! fractal.fractalPaused){
+        fractal.tuniform.iGlobalTime.value += delta;
+        //fractal.time += delta;
+    }
+    //fractal.tuniform.iRenderTime.value = fractal.stats;
+}
+
+
+

@@ -1,0 +1,50 @@
+
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Particle</title>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">  <!-- Use Chrome plugin for IE if installed -->
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <link rel="stylesheet" type="text/css" href="meny.css" />
+  <link rel="stylesheet" type="text/css" href="particle.css" />
+</head>
+
+<body>
+    <div class="meny">
+    <div class="dropdown">
+      <div class="dropdown-heading">Gravity Well</div>
+      <ul class="dropdown-menu">
+          <li class="dropdown-menu-item">
+            <a id="Strength" >Strength</a>
+            <input type="range" class="dropdown-slider" id="gravitySlider" min="0" max="500" value="0" />
+          </li>
+      </ul>
+    </div>
+    
+    <div class="dropdown">
+      <div class="dropdown-heading">System</div>
+      <ul class="dropdown-menu">
+          <li id="Cluster" class="dropdown-menu-item"><a>Cluster</a></li>
+          <li id="SingleShot" class="dropdown-menu-item"><a>Single Shot</a></li>
+      </ul>
+    </div>
+    </div>
+  </div>
+  
+  <div class="contents">
+    <!-- your page contents -->
+    <canvas id="canvas" width="595" height="351">
+      <p>Your browser doesn't support the HTML5 canvas element.</p>
+    </canvas>
+    <div id="messageWindow">
+        <div id="messages"></div>
+    </div>
+
+  </div>
+<!-- javascript, loaded at the end to make the page appear faster -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script type="text/javascript" src="meny.js"></script>
+<script type="text/javascript" src="particle.js"></script>
+</body>
+</html>
+

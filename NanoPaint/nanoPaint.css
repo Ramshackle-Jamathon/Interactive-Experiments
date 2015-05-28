@@ -1,0 +1,211 @@
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0px;
+}
+.meny{
+    padding: 0px;
+}
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.dropdown .dropdown-menu {
+    top: 100%;
+    display: none;
+    margin: 0px;
+    list-style: none; /** Remove list bullets */
+    width: 100%; 
+    -webkit-transition: 0.15s display ease;
+	   -moz-transition: 0.15s display ease;
+	    -ms-transition: 0.15s display ease;
+	     -o-transition: 0.15s display ease;
+	        transition: 0.15s display ease;
+}
+
+
+.dropdown-menu-item {
+    text-align: center;
+    vertical-align: middle;
+    width: 100% !important;
+    list-style: none; /** Remove list bullets */
+    display: block;
+    text-decoration: none;
+    font-size: 30px;
+    background: #CCCCCC;
+    color: #333333;
+}
+.dropdown-menu-item:hover {
+    background: #BBBBBB;
+}
+.dropdown-slider {
+    position:relative;
+    width:100%;
+}
+
+.dropdown-brush-item {
+    height: 250px;
+    text-align: center;
+    vertical-align: middle;
+    width: 100% !important;
+    list-style: none; /** Remove list bullets */
+    display: block;
+    text-decoration: none;
+    font-size: 30px;
+    background: #CCCCCC;
+    color: #333333;
+}
+#brushCanvas {
+    position:relative;
+}
+#brushWidthSlider {
+    position:relative;
+    width:100%;
+}
+
+
+.dropdown-heading:hover{
+    background-image: -webkit-repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -moz-repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -o-repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    -webkit-background-size: 4px 4px;
+    -moz-background-size: 4px 4px;
+    background-size: 4px 4px;
+}
+/** Button Styles **/
+.dropdown-heading {
+    margin: 0px;
+    text-align: center;
+    vertical-align: middle;
+    background: #FF6223;
+    color: #FFFFFF;
+    border: none;
+    text-decoration: none;
+    font-size: 40px;
+}
+.dropdown .dropdown-heading:hover{
+    background:#d93e00;
+}
+
+.dropdown .dropdown-heading.selected{
+    background-image: -webkit-repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -moz-repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -o-repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: repeating-linear-gradient(135deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    -webkit-background-size: 4px 4px;
+    -moz-background-size: 4px 4px;
+    background-size: 4px 4px;
+}
+.dropdown .dropdown-menu-item:active{
+    background-image: -webkit-repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -moz-repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -o-repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    -webkit-background-size: 4px 4px;
+    -moz-background-size: 4px 4px;
+    background-size: 4px 4px;
+}
+
+
+.dropdown .dropdown-menu-item.selected{
+    background-image: -webkit-repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -moz-repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: -o-repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    background-image: repeating-linear-gradient(225deg, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, transparent 2px, transparent 2px, rgba(0,0,0,.3) 3px);
+    -webkit-background-size: 4px 4px;
+    -moz-background-size: 4px 4px;
+    background-size: 4px 4px;
+}
+/* box for debugging output */
+#messageWindow {
+    pointer-events: none;
+    position:absolute;
+    bottom:0;
+    right:0;
+    width: 200pt;
+    height: 100pt;
+    overflow: auto;
+    background-image: -webkit-repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+    background-image: -moz-repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+    background-image: -ms-repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+    background-image: repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+    -webkit-background-size: 3px 3px;
+    -moz-background-size: 3px 3px;
+    background-size: 3px 3px;
+}
+
+#messages {
+    pointer-events: none;
+    padding:4pt;
+    font-size:75%;
+    font-family:courier;
+    color: #fff;
+    overflow: auto;
+}
+
+#fileInput {
+    display:none;
+    z-index:2;
+    overflow:hidden;
+    position:absolute;
+    top:70pt;
+    left:90pt;
+    background-color:#ffd;
+    border: solid gray 2px;
+    -webkit-box-shadow: 5px 5px 5px #666;
+    -moz-box-shadow: 5px 5px 5px #666;
+}
+
+.closeBox {
+    float:right;
+    font-family:Arial;
+    margin:0pt;
+    background-color:gray;
+    border:solid black 1px;
+    color:white;
+    padding: 2pt;
+    margin:2pt;
+}
+
+#filePrompt {
+    font-family:Arial;
+    margin:12pt;
+}
+
+#file1 {
+    margin:12pt;
+    margin-top:0pt;
+}
+
+#saveWindow {
+    display:none;
+    background-color:#ffd;
+    position:absolute;
+    border:solid black 1px;
+    top:38pt;
+    left:38pt;
+    -webkit-box-shadow: 5px 5px 5px #999;
+    -moz-box-shadow: 5px 5px 5px #999;
+}
+
+#savePane {
+    width:630;
+    height:440;
+    border:solid gray 1pt;
+}
+
+#saveImg {
+    border:solid gray 1pt;
+    background-color:white;
+    margin:12pt;
+}
+
+#closeMsg {
+    font-family:arial;
+    position:relative;
+    top:-12pt;
+    left:12pt;
+}
