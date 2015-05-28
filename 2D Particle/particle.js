@@ -26,7 +26,6 @@
 
 
 $(document).ready(function () { 
-    ga('set', 'dimension1', "particle2d"); '
     particleSIM.init(); 
 });
 

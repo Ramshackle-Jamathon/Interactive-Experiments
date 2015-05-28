@@ -25,8 +25,7 @@
  */
 
 
-$(document).ready(function () { 
-    ga('set', 'dimension1', "particle3d"); 
+$(document).ready(function () {
     particleSIM.init(); 
 });
 

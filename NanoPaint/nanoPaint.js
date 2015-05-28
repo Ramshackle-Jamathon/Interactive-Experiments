@@ -6,7 +6,6 @@
  */
 
 $(document).ready(function () {
-    ga('set', 'dimension5', "nanoPaint");
     cpaint.init(); 
 });
 

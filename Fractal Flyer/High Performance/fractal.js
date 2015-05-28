@@ -49,7 +49,6 @@ var fractal = {
     
 }
 $(document).ready(function () { 
-    ga('set', 'dimension1', "FractalHigh"); 
     fractal.loadResources();
     fractal.showControls();     
 });
