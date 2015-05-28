@@ -1,12 +1,13 @@
 /*
- * CanvasPaint 352 -- starter code for a paint program using the 
- * HTML5 canvas element--for CS352, Calvin College Computer Science
+ * nanoPaint - Canvas and Interactive Menu System for In browser painting
  *
- * Harry Plantinga -- January 2011
- * Edited: Joseph Van Drunen -- March 2015
+ *
+ * Joseph Van Drunen -- March 2015
  */
 
-$(document).ready(function () { cpaint.init(); });
+$(document).ready(function () { 
+    cpaint.init(); 
+});
 
 var cpaint = {
   drawing: 		false,

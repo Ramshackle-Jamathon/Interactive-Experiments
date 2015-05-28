@@ -5,7 +5,10 @@
  * Joseph Van Drunen -- March 2015
  */
 
-$(document).ready(function () { cpaint.init(); });
+$(document).ready(function () {
+    ga('set', 'dimension5', "nanoPaint");
+    cpaint.init(); 
+});
 
 var cpaint = {
   drawing: 		false,

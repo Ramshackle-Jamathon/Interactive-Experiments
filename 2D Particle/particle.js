@@ -25,7 +25,10 @@
  */
 
 
-$(document).ready(function () { particleSIM.init(); });
+$(document).ready(function () { 
+    ga('set', 'dimension1', "particle2d"); '
+    particleSIM.init(); 
+});
 
 var particleSIM = {
   particles: [],
