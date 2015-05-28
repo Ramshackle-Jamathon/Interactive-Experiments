@@ -49,6 +49,7 @@ var fractal = {
     
 }
 $(document).ready(function () { 
+    NProgress.start();
     fractal.loadResources();
     fractal.showControls();     
 });
@@ -64,6 +65,7 @@ fractal.loadResources = function() {
         req.open("GET","textures/skydancer2.mp3",true); 
         req.responseType = "arraybuffer"; 
         req.onload = function() { 
+            NProgress.set(0.5);
             //decode the loaded data 
             fractal.audioContext.decodeAudioData(req.response, function(buffer) { 
                 fractal.audioBuffer = buffer; 
@@ -73,13 +75,15 @@ fractal.loadResources = function() {
                 //connect to the final output node (the speakers) 
                 fractal.audioAnalyser.connect(fractal.audioContext.destination);
                 //play immediately 
-                fractal.audioSource.start(0); 
+                fractal.audioSource.start(0);
+                NProgress.set(0.8); 
                 fractal.init();
             }); 
         }; 
         req.send(); 
     }catch(e) {
-        alert('Web Audio API is not supported in this browser'); 
+        NProgress.set(0.8); 
+        alert('Web Audio API is not supported in this browser');
         fractal.init();
     }
     
@@ -266,6 +270,8 @@ fractal.init = function() {
    
 	window.addEventListener( 'resize', fractal.onWindowResize, false ); 
     console.log("init Complete")
+    
+    NProgress.done();
 	fractal.render();
 }
 
