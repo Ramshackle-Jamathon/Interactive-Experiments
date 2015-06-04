@@ -82,8 +82,8 @@ fractal.loadResources = function() {
         }; 
         req.send(); 
     }catch(e) {
-        alert('Web Audio API is not supported in this browser'); 
         NProgress.set(0.8); 
+        alert('Web Audio API is not supported in this browser');
         fractal.init();
     }
     
@@ -272,7 +272,7 @@ fractal.init = function() {
     console.log("init Complete")
     
     NProgress.done();
-	fractal.render();
+	//fractal.render();
 }
 
 fractal.onWindowResize = function() {
