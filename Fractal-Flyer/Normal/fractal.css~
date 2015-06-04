@@ -14,7 +14,7 @@ html, body {
     position:absolute;
     bottom:0;
     right:0;
-    width: 235pt;
+    width: 225pt;
     height: 12pt;
 }
 

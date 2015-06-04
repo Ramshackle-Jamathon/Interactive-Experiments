@@ -14,6 +14,7 @@
 
   ga('create', 'UA-58181153-1', 'auto');
   ga('send', 'pageview');
+    ga('set', 'dimension1', "Fractal"); 
 
 </script>
 
@@ -264,7 +265,7 @@ void main(void)
 <div id="container">
 
     <div id="messageWindow">
-        <div id="messages"></div>
+        <div id="messages">Music: Skydancer II - Kenton Slash Demon</div>
     </div>
 </div>
 
