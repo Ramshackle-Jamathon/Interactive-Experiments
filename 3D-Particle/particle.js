@@ -267,6 +267,14 @@ particleSIM.draw = function () {
 	particleSIM.cx.stroke();
 	
 	particleSIM.cx.save();
+	
+	
+    var translationVector = $V([particle.x, particle.y, particle.z, 1]);
+    
+    
+	particleSIM.particles.sort(function(a,b) {
+	    return .z - a.z;
+    });
     for(var i = 0; i < particleSIM.particleCount; ++i) {
         var particle = particleSIM.particles[i];
     	if (particle.life > 0) {
@@ -279,7 +287,6 @@ particleSIM.draw = function () {
                 [0,0,0,1]
             ]); 
             
-            var translationVector = $V([particle.x, particle.y, particle.z, 1]);
                 
             //var comboMatrix = translationMatrix.x(particleSIM.perspectiveMatrix).x(particleSIM.trackBallMatrix).x(particleSIM.zoomMatrix);
             var comboMatrix = (particleSIM.comboMatrix).x(translationMatrix);
