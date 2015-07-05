@@ -25,7 +25,7 @@
  */
 
 
-document.addEventListener("DOMContentLoaded", function(event) { 
+$(document).ready(function () {
     particleSIM.init(); 
 });
 
@@ -81,11 +81,11 @@ var meny = Meny.create({
 });
 
 particleSIM.requestAnimationFrame = window.requestAnimationFrame ||
-	window.mozRequestAnimationFrame ||
-	window.webkitRequestAnimationFrame ||
-	window.msRequestAnimationFrame ||
-	window.oRequestAnimationFrame || function(callback) {
-	window.setTimeout(callback, 1 / 60 * 1000);
+    window.mozRequestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    window.oRequestAnimationFrame || function(callback) {
+    window.setTimeout(callback, 1 / 60 * 1000);
 };
 
 
@@ -98,10 +98,10 @@ particleSIM.init = function () {
     particleSIM.cx.canvas.height = window.innerHeight;
     particleSIM.trackBallRadius = 200;
     particleSIM.startingPosition = {
-				                        x: particleSIM.cx.canvas.width / 2,
-				                        y: particleSIM.cx.canvas.height / 2,
-				                        z: particleSIM.cx.canvas.width / 2
-			                        };
+                                        x: particleSIM.cx.canvas.width / 2,
+                                        y: particleSIM.cx.canvas.height / 2,
+                                        z: particleSIM.cx.canvas.width / 2
+                                    };
     particleSIM.trans1 = $M([ 
             [1, 0, 0, particleSIM.startingPosition.x ],
             [0, 1, 0, particleSIM.startingPosition.y ],
@@ -145,24 +145,24 @@ particleSIM.init = function () {
  * particle constructor
  */
 particleSIM.Particle = function (posx, posy, posz, life, alpha, beta, speed, index) {
-	this.x = posx;
-	this.y = posy;
-	this.z = posz;
-	this.index = index;
-	this.lastx = posx
-	this.lasty = posy
-	this.lasty = posz
-	this.life = life;
-	var alphaInRadians = alpha * Math.PI / 180;
-	var betaInRadians = beta * Math.PI / 180;
-	this.velocity = {
-		x: speed * Math.sin(alphaInRadians) * Math.cos(betaInRadians),
-		y: speed * Math.sin(betaInRadians),
-		z: speed * Math.cos(alphaInRadians) * Math.sin(betaInRadians)
-	};
-	this.color = '#fff';
-	this.radius = 4;
-	return this;
+    this.x = posx;
+    this.y = posy;
+    this.z = posz;
+    this.index = index;
+    this.lastx = posx
+    this.lasty = posy
+    this.lasty = posz
+    this.life = life;
+    var alphaInRadians = alpha * Math.PI / 180;
+    var betaInRadians = beta * Math.PI / 180;
+    this.velocity = {
+        x: speed * Math.sin(alphaInRadians) * Math.cos(betaInRadians),
+        y: speed * Math.sin(betaInRadians),
+        z: speed * Math.cos(alphaInRadians) * Math.sin(betaInRadians)
+    };
+    this.color = '#fff';
+    this.radius = 4;
+    return this;
 }
 /*
  * particle update object
@@ -170,11 +170,11 @@ particleSIM.Particle = function (posx, posy, posz, life, alpha, beta, speed, ind
 particleSIM.Particle.prototype.update = function(dt) {  
 
 
-	//FRICTION
+    //FRICTION
     //this.velocity.x *= 0.90;
     //this.velocity.y *= 0.90;
     //this.velocity.Z *= 0.90;    
-	
+    
     //GRAVITY
     var newX = (particleSIM.cx.canvas.width / 2) - this.x;
     var newY = (particleSIM.cx.canvas.height / 2) - this.y;
@@ -193,13 +193,13 @@ particleSIM.Particle.prototype.update = function(dt) {
     this.velocity.z += newZ;    
         
         
-	this.life -= dt;
-	if(this.life > 0) {
-	    //particle is alive! much celebration!
-		this.x += this.velocity.x * dt;
-		this.y += this.velocity.y * dt;
-		this.z += this.velocity.z * dt;
-		/*if(this.x >= particleSIM.cx.canvas.width || this.x <= 0){
+    this.life -= dt;
+    if(this.life > 0) {
+        //particle is alive! much celebration!
+        this.x += this.velocity.x * dt;
+        this.y += this.velocity.y * dt;
+        this.z += this.velocity.z * dt;
+        /*if(this.x >= particleSIM.cx.canvas.width || this.x <= 0){
             this.velocity.x = -0.9 * this.velocity.x;
         }
         if(this.y >= particleSIM.cx.canvas.height || this.y <= 0){
@@ -208,13 +208,13 @@ particleSIM.Particle.prototype.update = function(dt) {
         if(this.z >= particleSIM.cx.canvas.width || this.z <= 0){
             this.velocity.z = -0.9 * this.velocity.z;
         }*/
-	} else {
-	    //particle is dead return it to particle pool(the end of the array)
-		var particleThatJustDied = particleSIM.particles[this.index];
-		particleSIM.particles[this.index] = particleSIM.particles[particleSIM.particleCount - 1];
-		particleSIM.particles[particleSIM.particleCount - 1] = particleThatJustDied;
-		particleSIM.particleCount--;
-	}
+    } else {
+        //particle is dead return it to particle pool(the end of the array)
+        var particleThatJustDied = particleSIM.particles[this.index];
+        particleSIM.particles[this.index] = particleSIM.particles[particleSIM.particleCount - 1];
+        particleSIM.particles[particleSIM.particleCount - 1] = particleThatJustDied;
+        particleSIM.particleCount--;
+    }
 }
 /*
  * particle pool handler function
@@ -222,26 +222,26 @@ particleSIM.Particle.prototype.update = function(dt) {
  * beta: left/right angle
  */
 particleSIM.setFreeParticle = function(posx, posy, posz, life, alpha, beta, speed) {
-	particleSIM.particleCount++;
-	if(typeof particleSIM.particles[particleSIM.particleCount-1] === 'undefined') {
-		 particleSIM.particles.push(new particleSIM.Particle(posx, posy, posz, life, alpha, beta, speed, particleSIM.particleCount-1));
-	}
-	else {
-		var particle = particleSIM.particles[particleSIM.particleCount-1];
-		particle.x = posx;
-		particle.y = posy;
-		particle.z = posz;
-		particle.index = particleSIM.particleCount;
-		particle.life = life;
+    particleSIM.particleCount++;
+    if(typeof particleSIM.particles[particleSIM.particleCount-1] === 'undefined') {
+         particleSIM.particles.push(new particleSIM.Particle(posx, posy, posz, life, alpha, beta, speed, particleSIM.particleCount-1));
+    }
+    else {
+        var particle = particleSIM.particles[particleSIM.particleCount-1];
+        particle.x = posx;
+        particle.y = posy;
+        particle.z = posz;
+        particle.index = particleSIM.particleCount;
+        particle.life = life;
 
-		var alphaInRadians = alpha * Math.PI / 180;
-		var betaInRadians = beta * Math.PI / 180;
-		particle.velocity = {
-			x: speed * Math.sin(alphaInRadians) * Math.cos(betaInRadians),
-			y: speed * Math.sin(betaInRadians),
-			z: speed * Math.cos(alphaInRadians) * Math.sin(betaInRadians)
-		};
-	}
+        var alphaInRadians = alpha * Math.PI / 180;
+        var betaInRadians = beta * Math.PI / 180;
+        particle.velocity = {
+            x: speed * Math.sin(alphaInRadians) * Math.cos(betaInRadians),
+            y: speed * Math.sin(betaInRadians),
+            z: speed * Math.cos(alphaInRadians) * Math.sin(betaInRadians)
+        };
+    }
 }
 /*
  * frame Handler (updates objects then draws)
@@ -250,7 +250,7 @@ particleSIM.play = function (timestamp) {
     var delta = timestamp - (particleSIM.lastTimestamp || timestamp);
     particleSIM.lastTimestamp = Math.floor(timestamp);
     delta /= 1000;
-	for(var i = 0; i < particleSIM.particleCount; ++i) {
+    for(var i = 0; i < particleSIM.particleCount; ++i) {
         particleSIM.particles[i].update(delta);
     }
     particleSIM.draw();
@@ -260,27 +260,27 @@ particleSIM.play = function (timestamp) {
  * frame draw
  */
 particleSIM.draw = function () {
-	particleSIM.cx.fillStyle = 'grey';
-	particleSIM.cx.fillRect(0, 0, particleSIM.cx.canvas.width, particleSIM.cx.canvas.height);
-	particleSIM.cx.beginPath();
-	particleSIM.cx.arc(particleSIM.cx.canvas.width/2, particleSIM.cx.canvas.height/2, particleSIM.trackBallRadius, 0, 2* Math.PI);
-	particleSIM.cx.stroke();
-	
-	particleSIM.cx.save();
-	
-	
-    //var translationVector = $V([particle.x, particle.y, particle.z, 1]);
+    particleSIM.cx.fillStyle = 'grey';
+    particleSIM.cx.fillRect(0, 0, particleSIM.cx.canvas.width, particleSIM.cx.canvas.height);
+    particleSIM.cx.beginPath();
+    particleSIM.cx.arc(particleSIM.cx.canvas.width/2, particleSIM.cx.canvas.height/2, particleSIM.trackBallRadius, 0, 2* Math.PI);
+    particleSIM.cx.stroke();
+    
+    particleSIM.cx.save();
     
     
-	particleSIM.particles.sort(function(a,b) {
-	    return b.z - a.z;
+    var translationVector = $V([particle.x, particle.y, particle.z, 1]);
+    
+    
+    particleSIM.particles.sort(function(a,b) {
+        return .z - a.z;
     });
     for(var i = 0; i < particleSIM.particleCount; ++i) {
         var particle = particleSIM.particles[i];
-    	if (particle.life > 0) {
-			//console.log("particle: " + i + " at  (" + particle.x + ", " + particle.y + ", " + particle.z + ")");
-    	
-	        var translationMatrix = $M([
+        if (particle.life > 0) {
+            //console.log("particle: " + i + " at  (" + particle.x + ", " + particle.y + ", " + particle.z + ")");
+        
+            var translationMatrix = $M([
                 [1,0,0,particle.x],
                 [0,1,0,particle.y],
                 [0,0,1,particle.z],
@@ -317,7 +317,7 @@ particleSIM.draw = function () {
                 }    
             }
             //hidden surface removal
-           /* faces.sort(function(face1, face2){
+            faces.sort(function(face1, face2){
                 var face1Sum = 0;
                 var face2Sum = 0;
                 for (var i = 0; i < face1.indices.length; ++i)
@@ -325,7 +325,7 @@ particleSIM.draw = function () {
                 for (var i = 0; i < face2.indices.length; ++i)
                     face2Sum += translatedVerts[face2.indices[i]].elements[2];
                 return (face1Sum / face1.indices.length) - ( face2Sum / face2.indices.length);
-            });*/
+            });
             
             for (var a = 0; a < faces.length; ++a) {
                 var indices = faces[a].indices;
@@ -353,9 +353,9 @@ particleSIM.draw = function () {
                 if (particleSIM.stroke)
                     particleSIM.cx.stroke();
             }
-			particleSIM.cx.restore();
+            particleSIM.cx.restore();
             
-		}
+        }
     }
 }
 
@@ -552,7 +552,7 @@ particleSIM.trackMove = function(ev) {
  * Helper Functions
  */
 function coinFlip() {
-	return Math.random() > .5 ? 1 : -1;
+    return Math.random() > .5 ? 1 : -1;
 }
 // Menu Expander
 particleSIM.menuToggle = function(ev) {
@@ -565,4 +565,3 @@ particleSIM.brighten = function(color, amount){
     if (color > 1) { color = 1 }
     return Math.floor(color * 255);
 }
-
