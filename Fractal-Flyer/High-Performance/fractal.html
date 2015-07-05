@@ -220,6 +220,7 @@ void main(void)
 	
     vec2 coord =(-1.0 + 2.0 *vUv);
 	coord.x *= iResolution.x/iResolution.y;
+	//coord.y *= iResolution.x/iResolution.y;
 	
 	bool isCyan;
 	if(iAnaglyph == 1){
@@ -269,8 +270,6 @@ void main(void)
     </div>
 </div>
 
-<!-- javascript, loaded at the end to make the page appear faster -->
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <script type="text/javascript" src="libs/three.min.js"></script>
 <script type="text/javascript" src="libs/FlyControls.js"></script>
 <script type="text/javascript" src="libs/Detector.js"></script>

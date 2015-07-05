@@ -25,7 +25,7 @@
  */
 
 
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function(event) { 
     particleSIM.init(); 
 });
 
@@ -269,11 +269,11 @@ particleSIM.draw = function () {
 	particleSIM.cx.save();
 	
 	
-    var translationVector = $V([particle.x, particle.y, particle.z, 1]);
+    //var translationVector = $V([particle.x, particle.y, particle.z, 1]);
     
     
 	particleSIM.particles.sort(function(a,b) {
-	    return .z - a.z;
+	    return b.z - a.z;
     });
     for(var i = 0; i < particleSIM.particleCount; ++i) {
         var particle = particleSIM.particles[i];
@@ -317,7 +317,7 @@ particleSIM.draw = function () {
                 }    
             }
             //hidden surface removal
-            faces.sort(function(face1, face2){
+           /* faces.sort(function(face1, face2){
                 var face1Sum = 0;
                 var face2Sum = 0;
                 for (var i = 0; i < face1.indices.length; ++i)
@@ -325,7 +325,7 @@ particleSIM.draw = function () {
                 for (var i = 0; i < face2.indices.length; ++i)
                     face2Sum += translatedVerts[face2.indices[i]].elements[2];
                 return (face1Sum / face1.indices.length) - ( face2Sum / face2.indices.length);
-            });
+            });*/
             
             for (var a = 0; a < faces.length; ++a) {
                 var indices = faces[a].indices;

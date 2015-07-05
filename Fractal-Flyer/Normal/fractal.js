@@ -47,10 +47,12 @@ var fractal = {
     }
     
 }
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function(event) { 
+    NProgress.start();
     fractal.loadResources();
-    fractal.showControls();     
+    fractal.showControls();  
 });
+
 
 fractal.loadResources = function() {
     try {
@@ -63,6 +65,7 @@ fractal.loadResources = function() {
         req.open("GET","textures/kentonSlashDemon.mp3",true); 
         req.responseType = "arraybuffer"; 
         req.onload = function() { 
+            NProgress.set(0.5);
             //decode the loaded data 
             fractal.audioContext.decodeAudioData(req.response, function(buffer) { 
                 fractal.audioBuffer = buffer; 
@@ -73,11 +76,13 @@ fractal.loadResources = function() {
                 fractal.audioAnalyser.connect(fractal.audioContext.destination);
                 //play immediately 
                 fractal.audioSource.start(0); 
+                NProgress.set(0.8); 
                 fractal.init();
             }); 
         }; 
         req.send(); 
     }catch(e) {
+        NProgress.set(0.8); 
         alert('Web Audio API is not supported in this browser'); 
         fractal.init();
     }
@@ -176,7 +181,6 @@ fractal.init = function() {
     THREE.ImageUtils.crossOrigin = "";
     var textureImage = THREE.ImageUtils.loadTextureCube(urls);
   
-    console.log("before Shader")
     fractal.tuniform = {
         iGlobalTime:    { type: 'f', value: fractal.time },
         iMinimumDistance:    { type: 'f', value: fractal.minimumDistance },
@@ -203,14 +207,12 @@ fractal.init = function() {
     // The bg plane shouldn't care about the z-buffer.
     fractalMesh.material.depthTest = false;
     fractalMesh.material.depthWrite = false;
-    console.log("after Shader")
 
 
     
 	//fractal.scene.fog = new THREE.FogExp2( 0xcccccc, 0.001 );
     fractal.scene.add(fractal.camera);
     fractal.scene.add(fractalMesh);
-    console.log("shader Added")
 	
 	// renderer
 	//fractal.renderer.setClearColor( fractal.scene.fog.color );
@@ -264,7 +266,7 @@ fractal.init = function() {
     });*/
    
 	window.addEventListener( 'resize', fractal.onWindowResize, false ); 
-    console.log("init Complete")
+    NProgress.done();
 	fractal.render();
 }
 
@@ -279,94 +281,20 @@ fractal.onWindowResize = function() {
 
 }
 fractal.keyPress = function(e){
-    console.log(e.keyCode)
-    switch(e.keyCode){
+    switch(e.charCode){
         //Movement speed
-        case 122:
+        case "z".charCodeAt(0):
             fractal.controls.movementSpeed += 0.05
             break;
-        case 120:
+        case "x".charCodeAt(0):
             if(fractal.controls.movementSpeed > 0){
                 fractal.controls.movementSpeed -= 0.05  
             }
             break;
         // paused
-        case 103:
+        case "g".charCodeAt(0):
             fractal.controls.paused = !fractal.controls.paused 
             break;
-            
-        //3d anaglyphVision
-       /* case 112:
-            fractal.tuniform.iAnaglyph.value = 1 - fractal.tuniform.iAnaglyph.value;
-            if(fractal.tuniform.iAnaglyph.value == 1){
-                $('#messages').prepend("Anaglyph: ON <br>");	
-            } else {
-                $('#messages').prepend("Anaglyph: OFF <br>");
-            }
-            break;
-        //quality
-        case 61:
-            fractal.quality -= 0.1;
-            console.log(fractal.quality);
-            $('#messages').prepend("quality: " + fractal.quality + "<br>");	
-            fractal.resizePerformance();
-            break;
-        case 45:
-            fractal.quality += 0.1;
-            console.log(fractal.quality);
-            $('#messages').prepend("quality: " + fractal.quality + "<br>");	
-            fractal.resizePerformance();
-            break;
-        // paused
-        case 32:
-            fractal.paused = !fractal.paused
-            break;
-        // rayMarch Forms
-        case 49:
-            $('#messages').prepend("Cube Forms <br>");	
-            fractal.tuniform.iForms.value = 1;
-            break;
-        case 50:
-            $('#messages').prepend("Plane Forms <br>");	
-            fractal.tuniform.iForms.value = 2;
-            break;
-        case 51:
-            $('#messages').prepend("Tube Forms <br>");
-            fractal.tuniform.iForms.value = 3;
-            break;
-        case 52:
-            $('#messages').prepend("Point Forms <br>");
-            fractal.tuniform.iForms.value = 4;
-            break;
-        // Space Folding
-        case 53:
-            fractal.tuniform.iSpaceFolding.value = 1 - fractal.tuniform.iSpaceFolding.value;
-            if (fractal.tuniform.iSpaceFolding.value == 0){
-                $('#messages').prepend("2D Space Folding <br>");
-            } else {
-                $('#messages').prepend("3D Space Folding <br>");
-            }
-            break;
-        // Normal Distance
-        case 91:
-            fractal.tuniform.iNormalDistance.value -= 0.01
-            $('#messages').prepend("Normal Distance: " + fractal.tuniform.iNormalDistance.value + "<br>");	
-            break;
-        case 93:
-            fractal.tuniform.iNormalDistance.value += 0.01
-            $('#messages').prepend("Normal Distance: " + fractal.tuniform.iNormalDistance.value + "<br>");	
-            break;
-        // Normal Distance
-        case 39:
-            fractal.tuniform.iMinimumDistance.value *= 0.005
-            $('#messages').prepend("Minimum Distance: " + fractal.tuniform.iMinimumDistance.value + "<br>");	
-            break;
-        case 59:
-            fractal.tuniform.iMinimumDistance.value /= 0.005
-            $('#messages').prepend("Minimum Distance: " + fractal.tuniform.iMinimumDistance.value + "<br>");	
-            break;
-        */
-        
     }    
 }
 
