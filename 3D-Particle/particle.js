@@ -269,11 +269,11 @@ particleSIM.draw = function () {
     particleSIM.cx.save();
     
     
-    var translationVector = $V([particle.x, particle.y, particle.z, 1]);
+    //var translationVector = $V([particle.x, particle.y, particle.z, 1]);
     
     
     particleSIM.particles.sort(function(a,b) {
-        return .z - a.z;
+        return b.z - a.z;
     });
     for(var i = 0; i < particleSIM.particleCount; ++i) {
         var particle = particleSIM.particles[i];
@@ -491,7 +491,7 @@ particleSIM.launchParticle = function(ev) {
     launchVec.elements[2] = launchVec.elements[2] * particleSIM.trackBallRadius + particleSIM.startingPosition.z;
     console.log(launchVec.elements);
     
-    for(var i = 0; i < 20; ++i) {
+    for(var i = 0; i < 1; ++i) {
         particleSIM.setFreeParticle(launchVec.elements[0], launchVec.elements[1], launchVec.elements[2], 9000 + Math.random() * 2 * coinFlip(), Math.random() * 360, Math.random() * 360, 100);
     }
     ev.preventDefault();
