@@ -489,8 +489,7 @@ particleSIM.launchParticle = function(ev) {
     launchVec.elements[0] = launchVec.elements[0] * particleSIM.trackBallRadius + particleSIM.startingPosition.x;
     launchVec.elements[1] = launchVec.elements[1] * particleSIM.trackBallRadius + particleSIM.startingPosition.y;
     launchVec.elements[2] = launchVec.elements[2] * particleSIM.trackBallRadius + particleSIM.startingPosition.z;
-    console.log(launchVec.elements);
-    
+
     for(var i = 0; i < 1; ++i) {
         particleSIM.setFreeParticle(launchVec.elements[0], launchVec.elements[1], launchVec.elements[2], 9000 + Math.random() * 2 * coinFlip(), Math.random() * 360, Math.random() * 360, 100);
     }
