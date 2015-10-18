@@ -1,14 +1,20 @@
 [
     {
-        "author": "Pete Hunt",
-        "text": "Hey there!"
+        "playerName": "Pete Hunt",
+        "xCoordinate": 1,
+        "yCoordinate": 2,
+        "zCoordinate": 3
     },
     {
-        "author": "test",
-        "text": "HE"
+        "playerName": "Pete Hunt",
+        "xCoordinate": 1,
+        "yCoordinate": 2,
+        "zCoordinate": 3
     },
     {
-        "author": "set tes",
-        "text": "test"
+        "playerName": "Pete Hunt",
+        "xCoordinate": 1,
+        "yCoordinate": 2,
+        "zCoordinate": 3
     }
 ]

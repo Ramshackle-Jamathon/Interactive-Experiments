@@ -1,0 +1,24 @@
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  overflow:hidden;
+  background: #000000;
+}
+
+/* box for debugging output */
+#messageWindow {
+    pointer-events: none;
+    position:absolute;
+    bottom:0;
+    right:0;
+    width: 170pt;
+    height: 12pt;
+}
+
+#messages {
+    pointer-events: none;
+    color: #eee;
+    font: 11px 'Lucida Grande', sans-serif;
+}
