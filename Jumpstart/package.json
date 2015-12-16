@@ -19,5 +19,8 @@
     "style-loader": "^0.13.0",
     "webpack": "^1.12.3"
   },
+  "scripts": {
+    "dev": "webpack-dev-server --progress --colors --content-base public/"
+  },
   "dependencies": {}
 }
