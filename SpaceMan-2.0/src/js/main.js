@@ -57,7 +57,7 @@ require("../css/style.scss");
             twinkleSpeed: { type:"f", value: 0.04 },
             distfading: { type:"f", value: 0.75 },
             brightness: { type:"f", value: 0.0018 },
-            color: { type:"v3", value:new THREE.Vector3(0.1796875, 0.90296875, 0.33984375) },
+            color: { type:"v3", value:new THREE.Vector3(0.0, 0.0, 0.0) },
             speed: { type:"f", value: 0.01 },
         };
 
@@ -149,38 +149,39 @@ require("../css/style.scss");
         function createScene( geometry, scale, material ) {
 
 
-            geometry.computeFaceNormals();
-            geometry.computeVertexNormals();
 
             // define morphtargets, we'll use the vertices from these geometries
             // define morphtargets and compute the morphnormal
-            var vertices = [];
+
+        /*  console.log(geometry.vertices.length)
+            console.log(geometry.morphTargets[0].vertices.length)
+            for ( var v = 0; v < geometry.morphTargets[0].vertices.length; v ++ ) {
+                if (v >= geometry.vertices.length){
+                    geometry.vertices.push( new THREE.Vector3( geometry.morphTargets[0].vertices[v].x, geometry.morphTargets[0].vertices[v].y, geometry.morphTargets[0].vertices[v].z ) )
+                }
+            }
 
             console.log(geometry.vertices.length)
-            for ( var v = 0; v < geometry.vertices.length; v ++ ) {
-                vertices.push( new THREE.Vector3( geometry.vertices[v].x * 3.0, geometry.vertices[v].y / 2.0, geometry.vertices[v].z ) )
-            }
-            geometry.morphTargets[0] = {name: 't1', vertices: geometry.vertices};
-            geometry.morphTargets[1] = { name: 't2' , vertices: vertices };
-
-            geometry.computeMorphNormals();
-
-            mesh = new THREE.MorphBlendMesh( geometry, material );
-            mesh.position.z = - 550;
-            mesh.scale.set( scale, scale, scale );
-
-
+            console.log(geometry.morphTargets[0].vertices.length)
+            //geometry.morphTargets[0] = {name: 't1', vertices: geometry.vertices};
+            //geometry.morphTargets[1] = { name: 't2' , vertices: vertices };
             var controls = new function () {
                 this.influence1 = 0.01;
-                this.influence2 = 0.01;
                 this.update = function () {
                     mesh.morphTargetInfluences[0] = controls.influence1;
-                    mesh.morphTargetInfluences[1] = controls.influence2;
+                    material.needsUpdate = true;
                 };
             };
             var gui = new dat.GUI();
             gui.add(controls, 'influence1', 0, 1).onChange(controls.update);
-            gui.add(controls, 'influence2', 0, 1).onChange(controls.update);
+
+*/
+            geometry.computeFaceNormals();
+            geometry.computeVertexNormals();
+
+            mesh = new THREE.MorphBlendMesh( geometry, material );
+            mesh.position.z = - 550;
+            mesh.scale.set( scale, scale, scale );
 
             if(eyes){
                 scene.add( mesh );

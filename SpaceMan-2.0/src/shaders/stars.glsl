@@ -137,7 +137,7 @@ void main(void) {
 		vec3 R = reflect(L, N);
 		float specular = pow( max(dot(R, E), 0.0), uShininess);
 
-		float nebulaTime = time / 40.0;
+		float nebulaTime = (time) / 40.0;
 		float rads = radians(nebulaTime*3.15);
 		position += rotate(position, rads);
 		float n = surface3(vec3(position*sin(nebulaTime*0.1), nebulaTime * 0.05)*mat3(1,0,0,0,.8,.6,0,-.6,.8),0.9);
