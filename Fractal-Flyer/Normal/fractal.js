@@ -34,7 +34,7 @@ var fractal = {
     scene: new THREE.Scene(),
     renderer: new THREE.WebGLRenderer( { antialias: true } ),
     time: 0.1,
-    quality: 1.5,
+    quality: 0.3,
     fractalPaused: false,
     minimumDistance: 0.005,
     normalDistance: 0.05,
@@ -96,7 +96,7 @@ fractal.init = function() {
             preset: "Default",
             remembered: {
                 "Default":{0:{
-                    "quality": 0.7,
+                    "quality": 0.3,
                     "minimumDistance": 0.005,
                     "normalDistance": 0.05,
                     "time": 0.1,

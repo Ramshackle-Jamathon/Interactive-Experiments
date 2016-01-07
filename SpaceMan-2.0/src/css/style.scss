@@ -12,8 +12,10 @@ body {
 }
 
 .stats {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: absolute;
+    cursor: pointer;	
+    top: 0px;
+    left: 0px;
+    z-index: 100;
 }
 
