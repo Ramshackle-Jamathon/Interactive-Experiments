@@ -9,23 +9,22 @@ uniform float starDensity;
 uniform float speed;
 uniform vec2 resolution;
 
-
+uniform vec3 myLightPos;
  
 const float uShininess = 2.0;        //shininess
-const vec3 uLightDirection = vec3(0.0, -1.0, -1.0);  //light direction
+const vec3 uLightDirection = vec3(1.0, -1.0, -1.0);  //light direction
  
 const vec4 uLightAmbient = vec4(0.01,0.01,0.01,0.0);      //light ambient property
 const vec4 uLightDiffuse = vec4(1.0,1.0,1.0,0.0);          //light diffuse property 
 const vec4 uLightSpecular = vec4(1.0,1.0,1.0,1.0);         //light specular property
  
 const vec4 uMaterialAmbient = vec4(1.0,1.0,1.0,0.0);      //object ambient property
-const vec4 uMaterialDiffuse = vec4(0.05,0.05,0.05,1.0);       //object diffuse property
+const vec4 uMaterialDiffuse = vec4(0.2,0.2,0.2,1.0);       //object diffuse property
 const vec4 uMaterialSpecular = vec4(1.0,1.0,1.0,0.0);     //object specular property
 
 
 varying vec2 vUv;
 varying vec3 vNormal;
-varying vec3 vPos;
 varying vec3 vEyeVec;
 
 //uniform vec3 pointLightColor[MAX_POINT_LIGHTS];
@@ -115,7 +114,7 @@ void main(void) {
 
     gl_FragColor = vec4(0.0,0.0,0.0,0.0);
 
- 	vec3 L = normalize(uLightDirection);
+ 	vec3 L = normalize(myLightPos);
 	vec3 N = normalize(vNormal);
 
 	//Lambert's cosine law
@@ -148,28 +147,6 @@ void main(void) {
 		vec3 tc = pow(vec3(1.0-lum),vec3(sin(position.x)+cos(nebulaTime)+4.0,8.0+sin(nebulaTime)+4.0,8.0));
 		vec3 tc2 = pow(vec3(1.1-lum2),vec3(5.0,position.y+cos(nebulaTime)+7.0,sin(position.x)+sin(nebulaTime)+2.0));
 		vec3 curr_color = (tc*0.8) + (tc2*0.5);
-		
-		
-		//Let's draw some stars
-		
-		float scale = sin(0.3 * nebulaTime) + 5.0;
-		vec2 position2 = (((vUv.xy / resolution) - 0.5) * scale);
-		float gradient = 0.0;
-		float fade = 0.0;
-		float z = 0.0;
-	 	vec2 centered_coord = position2 - vec2(sin(nebulaTime*0.1),sin(nebulaTime*0.1));
-		centered_coord = rotate(centered_coord, rads);
-		
-		for (float i=1.0; i<=60.0; i++)
-		{
-			vec2 star_pos = vec2(sin(i) * 250.0, sin(i*i*i) * 250.0);
-			float z = mod(i*i - 10.0*nebulaTime, 256.0);
-			float fade = (256.0 - z) /256.0;
-			vec2 blob_coord = star_pos / z;
-			gradient += ((fade / 384.0) / pow(length(centered_coord - blob_coord), 1.5)) * ( fade);
-		}
-
-		curr_color += gradient;
 
 
 
@@ -179,7 +156,7 @@ void main(void) {
 
 	//Final color
 	vec4 finalColor = Ia + Id + Is;
-	finalColor.a = 1.0;
+	//finalColor.a = 1.0;
     gl_FragColor = finalColor;
 
 

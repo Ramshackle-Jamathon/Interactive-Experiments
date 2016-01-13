@@ -5,11 +5,17 @@ require("../css/style.scss");
 
     var skinShader = require("../shaders/stars.glsl");
     var eyeShader = require("../shaders/eyeStars.glsl");
+    var textShader = require("../shaders/textshader.glsl");
     var vertShader = require("../shaders/vert.glsl");
+    var TWEEN = require('./lib/Tween.js');
     var phongVertShader = require("../shaders/phongvert.glsl");
 
     var Detector = require('./lib/Detector');
-    require('./lib/OBJLoader');
+    require('./lib/FontUtils');
+    require('./lib/TextGeometry');
+    require('./Maple-Black');
+
+
 
     var dat = require('./lib/dat.gui');
     var Stats = require('./lib/Stats');
@@ -22,52 +28,70 @@ require("../css/style.scss");
 
         var camera, scene, renderer, mixer;
 
-        var mesh, eyes;
-
-        var composer, composerUV1, composerUV2, composerUV3, composerBeckmann;
-
-        var directionalLight, pointLight, ambientLight;
+        var mesh, eyes, textRight, textLeft;
 
         var mouseX = 0, mouseY = 0;
         var targetX = 0, targetY = 0;
 
-        var windowHalfX = window.innerWidth / 2;
-        var windowHalfY = window.innerHeight / 2;
+        var windowHalfX = document.body.clientWidth / 2;
+        var windowHalfY = document.body.clientHeight / 2;
 
-        var firstPass = true;
-
+        var raycaster = new THREE.Raycaster();
+        var mouse = new THREE.Vector2();
         var clock = new THREE.Clock();
         var time = 0.1
+        var updateLight = true;
 
 
-        var uniforms = THREE.UniformsUtils.merge(
-            [THREE.UniformsLib['lights'],
-            {
-                time: { type:"f", value:time },
-                resolution: { type:"v2", value:new THREE.Vector2(100,100) },
-                starRadius: { type:"f", value: 3.3 },
-                starDensity: { type:"f", value: 0.0 },
-                starColor: { type:"v4", value:new THREE.Vector4(0.796078431372549,0.9254901960784314,0.9411764705882353,1.0) },
-                speed: { type:"f", value: 0.0001 },
-            }
-            ]
-        )
+        var uniforms = {
+            myLightPos:{ type:"v3", value:new THREE.Vector3() },
+            time: { type:"f", value:time },
+            resolution: { type:"v2", value:new THREE.Vector2(100,100) },
+            starRadius: { type:"f", value: 0.3 },
+            starDensity: { type:"f", value: 1.0 },
+            starColor: { type:"v4", value:new THREE.Vector4(0.796078431372549,0.9254901960784314,0.9411764705882353,1.0) },
+            speed: { type:"f", value: 0.000001 },
+        };
         var eyeUniforms = {
+            resolution: { type:"v2", value:new THREE.Vector2(0.6,0.6) },
+            time: { type:"f", value:time },
+            twinkleSpeed: { type:"f", value: 1.0 },
+            distfading: { type:"f", value: 0.75 },
+            brightness: { type:"f", value: 0.0018 },
+            color: { type:"v3", value:new THREE.Vector3(0.796078431372549,0.9254901960784314,0.9411764705882353) },
+            speed: { type:"f", value: 0.01 },
+        };
+        var textLeftUniforms = {
+            myLightPos:{ type:"v3", value:new THREE.Vector3() },
+            resolution: { type:"v2", value:new THREE.Vector2(0.01,0.01) },
             time: { type:"f", value:time },
             twinkleSpeed: { type:"f", value: 0.04 },
             distfading: { type:"f", value: 0.75 },
             brightness: { type:"f", value: 0.0018 },
-            color: { type:"v3", value:new THREE.Vector3(0.0, 0.0, 0.0) },
+            color: { type:"v3", value:new THREE.Vector3(0.796078431372549,0.9254901960784314,0.9411764705882353) },
             speed: { type:"f", value: 0.01 },
-        };
+        }
+        var textRightUniforms = {
+            myLightPos:{ type:"v3", value:new THREE.Vector3() },
+            resolution: { type:"v2", value:new THREE.Vector2(0.01,0.01) },
+            time: { type:"f", value:time },
+            twinkleSpeed: { type:"f", value: 0.04 },
+            distfading: { type:"f", value: 0.75 },
+            brightness: { type:"f", value: 0.0018 },
+            color: { type:"v3", value:new THREE.Vector3(0.796078431372549,0.9254901960784314,0.9411764705882353) },
+            speed: { type:"f", value: 0.01 },
+        }
 
         init();
         animate();
 
         function init() {
 
+
             container = document.createElement( 'div' );
+            container.id = 'glCanvas'
             document.body.appendChild( container );
+
 
             camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 10000 );
             camera.position.z = 900;
@@ -75,15 +99,6 @@ require("../css/style.scss");
             scene = new THREE.Scene();
 
             // LIGHTS
-
-            directionalLight = new THREE.PointLight( 0xffeedd, 1.5 );
-            directionalLight.position.set( 1, 0.5, 1 );
-            scene.add( directionalLight );
-
-            directionalLight = new THREE.PointLight( 0xddddff, 0.5 );
-            directionalLight.position.set( -1, 0.5, -1 );
-            scene.add( directionalLight );
-
             // MATERIALS
 
 
@@ -91,8 +106,6 @@ require("../css/style.scss");
                 uniforms: uniforms,
                 vertexShader: phongVertShader,
                 fragmentShader: skinShader,
-                lights:true,
-                morphTargets: true,
                 transparent: true
             });                  
             mat.needsUpdate = true;
@@ -106,10 +119,44 @@ require("../css/style.scss");
             loader.load(  "textures/head.js", function( geometry ) { createScene( geometry, 40, mat ) } );
             loader.load(  "textures/eyes.js", function( geometry ) { createEyes( geometry, 40, eyeMaterial ) } );
 
+            var textmaterialRight = new THREE.ShaderMaterial( {
+                uniforms: textRightUniforms,
+                vertexShader: phongVertShader,
+                fragmentShader: textShader,
+                transparent: true
+            });
+            textmaterialRight.needsUpdate = true;
+            var textmaterialLeft = new THREE.ShaderMaterial( {
+                uniforms: textLeftUniforms,
+                vertexShader: phongVertShader,
+                fragmentShader: textShader,
+                transparent: true
+            });
+            textmaterialLeft.needsUpdate = true;
+            var textGeomLeft = new THREE.TextGeometry( 'Journal', {
+                font: 'maple-black', // Must be lowercase!
+                weight: 'bold',
+                size: 40,
+                height: 1
+            });
+            var textGeomRight = new THREE.TextGeometry( 'Work', {
+                font: 'maple-black', // Must be lowercase!
+                weight: 'bold',
+                size: 40,
+                curveSegments: 100,
+                height: 1
+            });
+
+
+            textLeft = new THREE.Mesh( textGeomLeft, textmaterialLeft );
+            textRight = new THREE.Mesh( textGeomRight, textmaterialRight );
+            textLeft.position.x = -window.innerWidth/3
+            textRight.position.x = window.innerWidth/6
+            scene.add( textLeft );
+            scene.add( textRight );
 
             // RENDERER
-            renderer = new THREE.WebGLRenderer( { antialias: false } );
-            renderer.setClearColor( 0x111111 );
+            renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true} );
             renderer.setPixelRatio( window.devicePixelRatio );
             renderer.setSize( window.innerWidth, window.innerHeight );
             renderer.autoClear = true;
@@ -125,16 +172,25 @@ require("../css/style.scss");
 
             }
 
+
+            mouseX = 0;
+            mouseY = -windowHalfY;
+
+            textLeftUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
+            textRightUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
+            uniforms.myLightPos.value = new THREE.Vector3(mouseX,mouseY,-1);
             // EVENTS
 
             document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+            document.addEventListener( 'click', onDocumentClick, false );
             //
-
             window.addEventListener( 'resize', onWindowResize, false );
         }
 
         function onWindowResize() {
 
+            textLeft.position.x = -window.innerWidth/3
+            textRight.position.x = window.innerWidth/6
             windowHalfX = window.innerWidth / 2;
             windowHalfY = window.innerHeight / 2;
 
@@ -148,58 +204,22 @@ require("../css/style.scss");
 
         function createScene( geometry, scale, material ) {
 
-
-
-            // define morphtargets, we'll use the vertices from these geometries
-            // define morphtargets and compute the morphnormal
-
-        /*  console.log(geometry.vertices.length)
-            console.log(geometry.morphTargets[0].vertices.length)
-            for ( var v = 0; v < geometry.morphTargets[0].vertices.length; v ++ ) {
-                if (v >= geometry.vertices.length){
-                    geometry.vertices.push( new THREE.Vector3( geometry.morphTargets[0].vertices[v].x, geometry.morphTargets[0].vertices[v].y, geometry.morphTargets[0].vertices[v].z ) )
-                }
-            }
-
-            console.log(geometry.vertices.length)
-            console.log(geometry.morphTargets[0].vertices.length)
-            //geometry.morphTargets[0] = {name: 't1', vertices: geometry.vertices};
-            //geometry.morphTargets[1] = { name: 't2' , vertices: vertices };
-            var controls = new function () {
-                this.influence1 = 0.01;
-                this.update = function () {
-                    mesh.morphTargetInfluences[0] = controls.influence1;
-                    material.needsUpdate = true;
-                };
-            };
-            var gui = new dat.GUI();
-            gui.add(controls, 'influence1', 0, 1).onChange(controls.update);
-
-*/
             geometry.computeFaceNormals();
             geometry.computeVertexNormals();
-
-            mesh = new THREE.MorphBlendMesh( geometry, material );
+            mesh = new THREE.Mesh( geometry, material );
             mesh.position.z = - 550;
             mesh.scale.set( scale, scale, scale );
-
-            if(eyes){
-                scene.add( mesh );
-                scene.add( eyes );
-            }
+            scene.add( mesh );
         }
 
 
         function createEyes( geometry, scale, material ) {
-
+            geometry.computeFaceNormals();
+            geometry.computeVertexNormals();
             eyes = new THREE.Mesh( geometry, material );
             eyes.position.z = - 550;
             eyes.scale.set( scale, scale, scale );
-
-            if(mesh){
-                scene.add( mesh );
-                scene.add( eyes );
-            }
+            //scene.add( eyes );
         }
 
 
@@ -208,15 +228,84 @@ require("../css/style.scss");
             mouseX = ( event.clientX - windowHalfX );
             mouseY = ( event.clientY - windowHalfY );
 
+            if(updateLight){ 
+                textLeftUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
+                textRightUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
+                uniforms.myLightPos.value = new THREE.Vector3(mouseX,mouseY,-1);
+            }
+        
         }
+
+
+        function onDocumentClick( event ) {
+
+            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; 
+            updateLight = false;
+            if( mouseX > 0){
+                textRight.geometry.computeBoundingBox();
+                boundingBox = textRight.geometry.boundingBox;
+                clickedMesh = textRight
+            } else{
+                textLeft.geometry.computeBoundingBox();
+                boundingBox = textLeft.geometry.boundingBox;
+                clickedMesh = textLeft
+            }   
+
+            var x0 = boundingBox.min.x;
+            var x1 = boundingBox.max.x;
+            var y0 = boundingBox.min.y;
+            var y1 = boundingBox.max.y;
+            var z0 = boundingBox.min.z;
+            var z1 = boundingBox.max.z;
+
+
+            var bWidth = ( x0 > x1 ) ? x0 - x1 : x1 - x0;
+            var bHeight = ( y0 > y1 ) ? y0 - y1 : y1 - y0;
+            var bDepth = ( z0 > z1 ) ? z0 - z1 : z1 - z0;
+
+            var centroidX = x0 + ( bWidth / 2 ) + clickedMesh.position.x;
+            var centroidY = y0 + ( bHeight / 2 )+ clickedMesh.position.y;
+            var centroidZ = z0 + ( bDepth / 2 ) + clickedMesh.position.z;
+
+            centroid = { x : centroidX, y : centroidY, z : centroidZ };
+
+            var tweenFirst = new TWEEN.Tween(camera.position)
+                    .to({x: centroid.x,y: centroid.y+15,z: 230}, 800)
+                    .easing(TWEEN.Easing.Cubic.InOut)
+            var tweenSecond;
+
+
+            if( mouseX > 0){
+                textRightUniforms.myLightPos.value = new THREE.Vector3(-centroid.x,centroid.y,400.0);
+                tweenSecond = new TWEEN.Tween(camera.position).delay(100)
+                    .to({x: centroid.x,y: centroid.y+200,z: -1000}, 1000)
+                    .easing(TWEEN.Easing.Quadratic.In)
+                    .onComplete(function(){
+                        top.location.href = 'http://github.com/Ramshackle-Jamathon';
+                    })
+            } else{
+                textLeftUniforms.myLightPos.value = new THREE.Vector3(-centroid.x,centroid.y,400.0);
+                tweenSecond = new TWEEN.Tween(camera.position).delay(100)
+                    .to({x: centroid.x,y: centroid.y+200,z: -1000}, 1000)
+                    .easing(TWEEN.Easing.Quadratic.In)
+                    .onComplete(function(){
+                        top.location.href = '';
+                    })
+            } 
+            tweenFirst.chain(tweenSecond)
+            tweenFirst.start()
+
+        }
+
 
         //
 
         function animate() {
 
             requestAnimationFrame( animate );
-
             render();
+            TWEEN.update();
             if ( statsEnabled ) stats.update();
 
 
@@ -226,7 +315,8 @@ require("../css/style.scss");
             targetX = mouseX * .001;
             targetY = mouseY * .001;
             delta=clock.getDelta();
-
+            textLeft.material.uniforms.time.value += delta;
+            textRight.material.uniforms.time.value += delta;
             if ( mesh ) {
                 mesh.material.uniforms.time.value += delta;
 
@@ -235,7 +325,7 @@ require("../css/style.scss");
 
             }
             if(eyes){
-                eyes.material.uniforms.time.value += delta;
+                //eyes.material.uniforms.time.value += delta;
 
                 eyes.rotation.y += 0.05 * ( targetX - eyes.rotation.y );
                 eyes.rotation.x += 0.05 * ( targetY - eyes.rotation.x );
