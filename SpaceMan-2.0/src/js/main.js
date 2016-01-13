@@ -4,11 +4,10 @@ require("../css/style.scss");
     var THREE = require('./lib/three');
 
     var skinShader = require("../shaders/stars.glsl");
-    var eyeShader = require("../shaders/eyeStars.glsl");
     var textShader = require("../shaders/textshader.glsl");
-    var vertShader = require("../shaders/vert.glsl");
-    var TWEEN = require('./lib/Tween.js');
     var phongVertShader = require("../shaders/phongvert.glsl");
+
+    var TWEEN = require('./lib/Tween.js');
 
     var Detector = require('./lib/Detector');
     require('./lib/FontUtils');
@@ -16,19 +15,17 @@ require("../css/style.scss");
     require('./Maple-Black');
 
 
-
-    var dat = require('./lib/dat.gui');
     var Stats = require('./lib/Stats');
 
     if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-        var statsEnabled = true;
+        var statsEnabled = false;
 
         var container, stats, loader;
 
-        var camera, scene, renderer, mixer;
+        var camera, scene, renderer;
 
-        var mesh, eyes, textRight, textLeft;
+        var mesh, textRight, textLeft;
 
         var mouseX = 0, mouseY = 0;
         var targetX = 0, targetY = 0;
@@ -36,7 +33,6 @@ require("../css/style.scss");
         var windowHalfX = document.body.clientWidth / 2;
         var windowHalfY = document.body.clientHeight / 2;
 
-        var raycaster = new THREE.Raycaster();
         var mouse = new THREE.Vector2();
         var clock = new THREE.Clock();
         var time = 0.1
@@ -51,15 +47,6 @@ require("../css/style.scss");
             starDensity: { type:"f", value: 1.0 },
             starColor: { type:"v4", value:new THREE.Vector4(0.796078431372549,0.9254901960784314,0.9411764705882353,1.0) },
             speed: { type:"f", value: 0.000001 },
-        };
-        var eyeUniforms = {
-            resolution: { type:"v2", value:new THREE.Vector2(0.6,0.6) },
-            time: { type:"f", value:time },
-            twinkleSpeed: { type:"f", value: 1.0 },
-            distfading: { type:"f", value: 0.75 },
-            brightness: { type:"f", value: 0.0018 },
-            color: { type:"v3", value:new THREE.Vector3(0.796078431372549,0.9254901960784314,0.9411764705882353) },
-            speed: { type:"f", value: 0.01 },
         };
         var textLeftUniforms = {
             myLightPos:{ type:"v3", value:new THREE.Vector3() },
@@ -109,15 +96,6 @@ require("../css/style.scss");
                 transparent: true
             });                  
             mat.needsUpdate = true;
-            eyeMaterial = new THREE.ShaderMaterial( {
-                uniforms: eyeUniforms,
-                vertexShader: vertShader,
-                fragmentShader: eyeShader
-            });
-
-            loader = new THREE.JSONLoader();
-            loader.load(  "textures/head.js", function( geometry ) { createScene( geometry, 40, mat ) } );
-            loader.load(  "textures/eyes.js", function( geometry ) { createEyes( geometry, 40, eyeMaterial ) } );
 
             var textmaterialRight = new THREE.ShaderMaterial( {
                 uniforms: textRightUniforms,
@@ -160,6 +138,9 @@ require("../css/style.scss");
             renderer.setPixelRatio( window.devicePixelRatio );
             renderer.setSize( window.innerWidth, window.innerHeight );
             renderer.autoClear = true;
+
+            loader = new THREE.JSONLoader();
+            loader.load(  "textures/head.js", function( geometry ) { createScene( geometry, 40, mat ) } );
 
             container.appendChild( renderer.domElement );
 
@@ -211,17 +192,6 @@ require("../css/style.scss");
             mesh.scale.set( scale, scale, scale );
             scene.add( mesh );
         }
-
-
-        function createEyes( geometry, scale, material ) {
-            geometry.computeFaceNormals();
-            geometry.computeVertexNormals();
-            eyes = new THREE.Mesh( geometry, material );
-            eyes.position.z = - 550;
-            eyes.scale.set( scale, scale, scale );
-            //scene.add( eyes );
-        }
-
 
         function onDocumentMouseMove( event ) {
 
@@ -323,12 +293,6 @@ require("../css/style.scss");
                 mesh.rotation.y += 0.05 * ( targetX - mesh.rotation.y );
                 mesh.rotation.x += 0.05 * ( targetY - mesh.rotation.x );
 
-            }
-            if(eyes){
-                //eyes.material.uniforms.time.value += delta;
-
-                eyes.rotation.y += 0.05 * ( targetX - eyes.rotation.y );
-                eyes.rotation.x += 0.05 * ( targetY - eyes.rotation.x );
             }
 
             renderer.clear();

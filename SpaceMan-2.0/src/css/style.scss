@@ -1,16 +1,4 @@
 $bgCol: #111111;
-@font-face {
-  font-family: 'Maple Black';
-  src: url('/fonts/Maple-Black.eot'); /* IE9 Compat Modes */
-  src: local('☺'), 
-       url('/fonts/Maple-Black.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('/fonts/Maple-Black.woff') format('woff'), /* Modern Browsers */
-       url('/fonts/Maple-Black.ttf')  format('truetype'), /* Safari, Android, iOS */
-       url('/fonts/Maple-Black.svg#6ff6391f4950f03ef4fc8ea576fdd989') format('svg'); /* Legacy iOS */
-       
-  font-style:   normal;
-  font-weight:  400;
-}
 html, body {
     height: 100%;
     margin: 0;
@@ -20,25 +8,6 @@ html, body {
 body {
     background-color: $bgCol;
     overflow: hidden;
-}
-
-h1{
-    font-family: 'Maple Black';
-    position:absolute;
-    color: #222;
-    font-size:3.0em;
-    &:hover{
-        transition: color 0.5s ease-in-out;
-        color: #72cad5;
-    }
-    &#left{
-        top: 30%;
-        left: 30px;
-    }
-    &#right{
-        top: 30%;
-        right: 30px;
-    }
 }
 #glCanvas{
   position: absolute;
