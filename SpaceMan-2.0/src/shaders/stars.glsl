@@ -141,14 +141,12 @@ void main(void) {
 		position += rotate(position, rads);
 		float n = surface3(vec3(position*sin(nebulaTime*0.1), nebulaTime * 0.05)*mat3(1,0,0,0,.8,.6,0,-.6,.8),0.9);
 		float n2 = surface3(vec3(position*cos(nebulaTime*0.1), nebulaTime * 0.04)*mat3(1,0,0,0,.8,.6,0,-.6,.8),0.8);
-	    	float lum = length(n);
-	    	float lum2 = length(n2);
+		float lum = length(n);
+		float lum2 = length(n2);
 
 		vec3 tc = pow(vec3(1.0-lum),vec3(sin(position.x)+cos(nebulaTime)+4.0,8.0+sin(nebulaTime)+4.0,8.0));
 		vec3 tc2 = pow(vec3(1.1-lum2),vec3(5.0,position.y+cos(nebulaTime)+7.0,sin(position.x)+sin(nebulaTime)+2.0));
 		vec3 curr_color = (tc*0.8) + (tc2*0.5);
-
-
 
 		Is = vec4(curr_color, 1.0) * specular; //add specular term 
     }
