@@ -1,6 +1,8 @@
 precision highp float;
 precision highp int;
 
+
+
 uniform float time;
 
 uniform float starRadius;
@@ -41,6 +43,17 @@ varying vec3 vEyeVec;
 // 3249.5:  Removed use of random number generator to gain performance
 // 3265.0:  Added rotation: glsl.heroku.com/e#3005.1
 
+
+//GLSL and HLSL compatability functions
+vec4 lerp(vec4 a, vec4 b, float s)
+{
+    return vec4(a + (b - a) * s);       
+}
+float lerp(float a, float b, float s)
+{
+    return a + (b - a) * s;       
+}
+
 //Utility functions
 
 vec3 fade(vec3 t) {
@@ -50,14 +63,14 @@ vec3 fade(vec3 t) {
 vec2 rotate(vec2 point, float rads) {
 	float cs = cos(rads);
 	float sn = sin(rads);
-	return point * mat2(cs, -sn, sn, cs);
+	return vec2(point.x * cs + point.x * sn, point.y * -sn + point.y * cs);
 }	
 
 vec4 randomizer4(const vec4 x)
 {
-    vec4 z = mod(x, vec4(5612.0));
-    z = mod(z, vec4(3.1415927 * 2.0));
-    return(fract(cos(z) * vec4(56812.5453)));
+    vec4 z = abs(mod(x, vec4(5612.0)));
+    z = abs(mod(z, vec4(3.1415927 * 2.0)));
+    return abs((cos(z) * vec4(56812.5453)) - floor(cos(z) * vec4(56812.5453)));
 }
 
 // Fast computed noise
@@ -72,9 +85,9 @@ const vec4 A4 = vec4(A, A+B, C+A, C+A+B);
 
 float cnoise4(const in vec3 xx)
 {
-    vec3 x = mod(xx + 32768.0, 65536.0);
-    vec3 ix = floor(x);
-    vec3 fx = fract(x);
+    vec3 x = abs(mod(xx + 32768.0, 65536.0));
+    vec3 ix = abs(floor(x));
+    vec3 fx = x - abs(floor(x));
     vec3 wx = fx*fx*(3.0-2.0*fx);
     float nn = dot(ix, ABC);
 
@@ -82,8 +95,8 @@ float cnoise4(const in vec3 xx)
     vec4 N2 = nn + A4;
     vec4 R1 = randomizer4(N1);
     vec4 R2 = randomizer4(N2);
-    vec4 R = mix(R1, R2, wx.x);
-    float re = mix(mix(R.x, R.y, wx.y), mix(R.z, R.w, wx.y), wx.z);
+    vec4 R = lerp(R1, R2, wx.x);
+    float re = lerp(lerp(R.x, R.y, wx.y),  lerp(R.z, R.w, wx.y), wx.z);
 
     return 1.0 - 2.0 * re;
 }
@@ -139,14 +152,24 @@ void main(void) {
 		float nebulaTime = (time) / 40.0;
 		float rads = radians(nebulaTime*3.15);
 		position += rotate(position, rads);
-		float n = surface3(vec3(position*sin(nebulaTime*0.1), nebulaTime * 0.05)*mat3(1,0,0,0,.8,.6,0,-.6,.8),0.9);
-		float n2 = surface3(vec3(position*cos(nebulaTime*0.1), nebulaTime * 0.04)*mat3(1,0,0,0,.8,.6,0,-.6,.8),0.8);
+
+
+		vec3 temp = vec3(position*sin(nebulaTime*0.1), nebulaTime * 0.05);
+		vec3 tempMult = vec3(temp.x * 1.0 + temp.x * .0 + temp.x * .0, temp.y * .0 + temp.y * .8 + temp.y * -.6, temp.z * .0 + temp.z * .6 + temp.z * .8);
+		vec3 temp2 = vec3(position*cos(nebulaTime*0.1), nebulaTime * 0.04);
+		vec3 temp2Mult = vec3(temp2.x * 1.0 + temp2.x * 0.0 + temp2.x * 0.0, temp2.y * 0.0 + temp2.y * 0.8 + temp2.y * -0.6, temp2.z * 0.0 + temp2.z * 0.6 + temp2.z * 0.8);
+
+
+		float n = surface3(tempMult,0.9);
+		float n2 = surface3(temp2Mult,0.8);
 		float lum = length(n);
 		float lum2 = length(n2);
 
 		vec3 tc = pow(vec3(1.0-lum),vec3(sin(position.x)+cos(nebulaTime)+4.0,8.0+sin(nebulaTime)+4.0,8.0));
 		vec3 tc2 = pow(vec3(1.1-lum2),vec3(5.0,position.y+cos(nebulaTime)+7.0,sin(position.x)+sin(nebulaTime)+2.0));
 		vec3 curr_color = (tc*0.8) + (tc2*0.5);
+
+
 
 		Is = vec4(curr_color, 1.0) * specular; //add specular term 
     }
