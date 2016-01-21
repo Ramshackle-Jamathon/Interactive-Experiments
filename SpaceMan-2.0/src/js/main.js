@@ -128,15 +128,26 @@ require("../css/style.scss");
             });
             textLeft = new THREE.Mesh( textGeomLeft, textmaterialLeft );
             textRight = new THREE.Mesh( textGeomRight, textmaterialRight );
-            textLeft.name = "textLeft"
-            textRight.name = "textRight"
             textLeft.position.x = -450
             textRight.position.x = 200
             scene.add( textLeft );
             scene.add( textRight );
 
+            var geometry = new THREE.PlaneGeometry( 300, 70, 32 );
+            var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide, transparent: true, opacity: 0.0 } );
+            var planeRight = new THREE.Mesh( geometry, material );
+            planeRight.position.x = 290;
+            planeRight.position.y = 15;
+            planeRight.position.z = 40;
+            planeRight.name = "textRight"
+            scene.add( planeRight );
 
-
+            var planeLeft = new THREE.Mesh( geometry, material );
+            planeLeft.position.x = -320;
+            planeLeft.position.y = 15;
+            planeLeft.position.z = 40;
+            planeLeft.name = "textLeft"
+            scene.add( planeLeft );
 
             // RENDERER
             renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true} );
@@ -229,29 +240,20 @@ require("../css/style.scss");
                 console.log(intersects[ i ])
                 if(intersects[ i ].object.name == "textLeft" ){
                     console.log("left")
+                    textLeft.geometry.computeBoundingBox();
+                    boundingBox = textLeft.geometry.boundingBox;
+                    clickedMesh = textLeft
+                    updateLight = false;
                 }   
                 if(intersects[ i ].object.name == "textRight" ){
                     console.log("right")
-                    
+                    textRight.geometry.computeBoundingBox();
+                    boundingBox = textRight.geometry.boundingBox;
+                    clickedMesh = textRight
+                    updateLight = false;
                 }
-               // intersects[ i ].object.material.color.set( 0xff0000 );
             
             }
-
-
-
-/*
-            updateLight = false;
-            if( mouseX > 0){
-                textRight.geometry.computeBoundingBox();
-                boundingBox = textRight.geometry.boundingBox;
-                clickedMesh = textRight
-            } else{
-                textLeft.geometry.computeBoundingBox();
-                boundingBox = textLeft.geometry.boundingBox;
-                clickedMesh = textLeft
-            }   
-
             var x0 = boundingBox.min.x;
             var x1 = boundingBox.max.x;
             var y0 = boundingBox.min.y;
@@ -271,7 +273,7 @@ require("../css/style.scss");
             centroid = { x : centroidX, y : centroidY, z : centroidZ };
 
             var tweenFirst = new TWEEN.Tween(camera.position)
-                    .to({x: centroid.x,y: centroid.y+15,z: 230}, 800)
+                    .to({x: centroid.x,y: centroid.y,z: 230}, 800)
                     .easing(TWEEN.Easing.Cubic.InOut)
             var tweenSecond;
 
@@ -295,7 +297,6 @@ require("../css/style.scss");
             } 
             tweenFirst.chain(tweenSecond)
             tweenFirst.start()
-*/
         }
 
 
@@ -330,8 +331,5 @@ require("../css/style.scss");
             renderer.render( scene, camera );
 
         }
-
-
-
 
 })();
