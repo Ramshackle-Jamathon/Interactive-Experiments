@@ -182,7 +182,7 @@ void main() {
 
 	// camera
 	vec3 cPos = vec3(iCamPosition.x,iCamPosition.y,iCamPosition.z);
-	cPos.y = terrain(cPos.xz, 1) + 1.5;
+	cPos.y = max(cPos.y, terrain(cPos.xz, 1) + 0.5);
 	vec3 cUp  = vec3(iCamUp.x,iCamUp.y,iCamUp.z);
     vec3 cLook = cPos+vec3(iCamDir.x,iCamDir.y,iCamDir.z);
 	

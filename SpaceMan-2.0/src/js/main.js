@@ -33,10 +33,12 @@ require("../css/style.scss");
         var windowHalfX = document.body.clientWidth / 2;
         var windowHalfY = document.body.clientHeight / 2;
 
+        var raycaster = new THREE.Raycaster();
         var mouse = new THREE.Vector2();
         var clock = new THREE.Clock();
         var time = 0.1
         var updateLight = true;
+
 
 
         var uniforms = {
@@ -124,14 +126,17 @@ require("../css/style.scss");
                 curveSegments: 100,
                 height: 1
             });
-
-
             textLeft = new THREE.Mesh( textGeomLeft, textmaterialLeft );
             textRight = new THREE.Mesh( textGeomRight, textmaterialRight );
+            textLeft.name = "textLeft"
+            textRight.name = "textRight"
             textLeft.position.x = -450
             textRight.position.x = 200
             scene.add( textLeft );
             scene.add( textRight );
+
+
+
 
             // RENDERER
             renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true} );
@@ -155,8 +160,7 @@ require("../css/style.scss");
 
 
             mouseX = 0;
-            mouseY = -windowHalfY;
-
+            mouseY = -340;
             textLeftUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
             textRightUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
             uniforms.myLightPos.value = new THREE.Vector3(mouseX,mouseY,-1);
@@ -175,6 +179,11 @@ require("../css/style.scss");
 
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+
+
+            textLeftUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
+            textRightUniforms.myLightPos.value = new THREE.Vector3(-mouseX,mouseY,400.0);
+            uniforms.myLightPos.value = new THREE.Vector3(mouseX,mouseY,-1);
 
 
             renderer.setSize( window.innerWidth, window.innerHeight );
@@ -209,6 +218,29 @@ require("../css/style.scss");
 
             mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
             mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; 
+
+            // update the picking ray with the camera and mouse position    
+            raycaster.setFromCamera( mouse, camera, 100 );   
+
+            // calculate objects intersecting the picking ray
+            var intersects = raycaster.intersectObjects( scene.children );
+
+            for ( var i = 0; i < intersects.length; i++ ) {
+                console.log(intersects[ i ])
+                if(intersects[ i ].object.name == "textLeft" ){
+                    console.log("left")
+                }   
+                if(intersects[ i ].object.name == "textRight" ){
+                    console.log("right")
+                    
+                }
+               // intersects[ i ].object.material.color.set( 0xff0000 );
+            
+            }
+
+
+
+/*
             updateLight = false;
             if( mouseX > 0){
                 textRight.geometry.computeBoundingBox();
@@ -263,7 +295,7 @@ require("../css/style.scss");
             } 
             tweenFirst.chain(tweenSecond)
             tweenFirst.start()
-
+*/
         }
 
 

@@ -93,6 +93,7 @@
         shaderPlane.controls.rollSpeed = Math.PI / 3;
         shaderPlane.controls.autoForward = false;
         shaderPlane.controls.dragToLook = false;
+        shaderPlane.controls.paused = true;
         
 
 
@@ -220,7 +221,7 @@
         delta=shaderPlane.clock.getDelta();
         shaderPlane.controls.update(delta);
         shaderPlane.updateCameraPosition();
-        if( ! shaderPlane.fractalPaused){
+        if( ! shaderPlane.controls.paused){
             shaderPlane.tuniform.iGlobalTime.value += delta;
             //shaderPlane.time += delta;
         }
