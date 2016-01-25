@@ -239,20 +239,21 @@ require("../css/style.scss");
             for ( var i = 0; i < intersects.length; i++ ) {
                 console.log(intersects[ i ])
                 if(intersects[ i ].object.name == "textLeft" ){
-                    console.log("left")
                     textLeft.geometry.computeBoundingBox();
                     boundingBox = textLeft.geometry.boundingBox;
                     clickedMesh = textLeft
                     updateLight = false;
                 }   
                 if(intersects[ i ].object.name == "textRight" ){
-                    console.log("right")
                     textRight.geometry.computeBoundingBox();
                     boundingBox = textRight.geometry.boundingBox;
                     clickedMesh = textRight
                     updateLight = false;
                 }
             
+            }
+            if(boundingBox === undefined || boundingBox === null) {
+                return;
             }
             var x0 = boundingBox.min.x;
             var x1 = boundingBox.max.x;

@@ -1,0 +1,21 @@
+{
+  "name": "Hair-By-Debbie",
+  "description": "audio visual",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "webpack-dev-server --progress --colors",
+    "watch": "webpack --progress --colors --watch",
+    "build": "webpack --progress --colors",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "css-loader": "*",
+    "node-sass": "*",
+    "sass-loader": "*",
+    "style-loader": "*",
+    "shader-loader": "*",
+    "three": "*",
+    "webpack": "*",
+    "webpack-dev-server": "*"
+  }
+}
