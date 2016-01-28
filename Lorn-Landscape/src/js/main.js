@@ -3,7 +3,7 @@
     require('./lib/FlyControls');
 
     var vertShader = require("../shaders/vert.glsl");
-    var fragShader = require("../shaders/frag.glsl");
+    var fragShader = require("../shaders/ref.glsl");
 
     var Detector = require('./lib/Detector');
     var NProgress = require('./lib/nprogress');
@@ -23,7 +23,7 @@
         scene: new THREE.Scene(),
         renderer: new THREE.WebGLRenderer( { antialias: true } ),
         time: 0.1,
-        quality: 0.3,
+        quality: 0.2,
         showControls: function(){
             alert("Fractal Flyer \n\nControls:\n WASD: Movement\n QE: Roll \n ZX: Speed\n G: (Un)Freeze Camera")
         }
@@ -43,7 +43,7 @@
             shaderPlane.audioBuffer = undefined;
             shaderPlane.audioAnalyser = shaderPlane.audioContext.createAnalyser();
             var req = new XMLHttpRequest(); 
-            req.open("GET","textures/Lorn-Anvil.mp3",true); 
+            req.open("GET","textures/hair-by-debbie.mp3",true); 
             req.responseType = "arraybuffer"; 
             req.onload = function() { 
                 NProgress.set(0.5);
@@ -55,8 +55,13 @@
                     shaderPlane.audioSource.connect(shaderPlane.audioAnalyser); 
                     //connect to the final output node (the speakers) 
                     shaderPlane.audioAnalyser.connect(shaderPlane.audioContext.destination);
+
+                    shaderPlane.audioAnalyser.fftSize = 2048;
+                    bufferLength = shaderPlane.audioAnalyser.frequencyBinCount;
+                    shaderPlane.dataArray = new Uint8Array( bufferLength );
+
                     //play immediately 
-                    //shaderPlane.audioSource.start(0);
+                    shaderPlane.audioSource.start(0);
                     NProgress.set(0.8); 
                     shaderPlane.init();
                 }); 
@@ -78,7 +83,6 @@
         //note: .listen() will listen for changes to the variable but cause frame stuters DO NOT USE
         shaderPlane.gui.remember(shaderPlane)
         shaderPlane.qualityControl = shaderPlane.gui.add(shaderPlane, 'quality', 0.1, 2.0).step(0.1);
-        shaderPlane.timeControl = shaderPlane.gui.add(shaderPlane, 'time', 0.0, 120.0);   
         shaderPlane.infoControl = shaderPlane.gui.add(shaderPlane, 'showControls');
 
 
@@ -87,22 +91,23 @@
         var dataArray = new Uint8Array(bufferLength);
 
         //make independent camera since we are doing pure shader graphics
+        shaderPlane.movementCamera.lookAt(new THREE.Vector3(0.60,0.2,0.75));
         shaderPlane.controls = new THREE.FlyControls( shaderPlane.movementCamera );
-        shaderPlane.controls.movementSpeed = 1.0;
+        shaderPlane.controls.movementSpeed = 10.0;
         shaderPlane.controls.domElement = shaderPlane.container;
         shaderPlane.controls.rollSpeed = Math.PI / 3;
         shaderPlane.controls.autoForward = false;
         shaderPlane.controls.dragToLook = false;
         shaderPlane.controls.paused = true;
         
-
-
         shaderPlane.tuniform = {
             iGlobalTime: { type: 'f', value: shaderPlane.time },
             iResolution: { type:"v2", value:new THREE.Vector2(window.innerWidth,window.innerHeight) },
             iCamPosition: { type:"v3", value:new THREE.Vector3(1.0,0.0,0.0) },
             iCamDir: { type:"v3", value:new THREE.Vector3(1.0,0.0,0.0) },
-            iCamUp: { type:"v3", value:new THREE.Vector3(0.0,1.0,0.0) }
+            iCamUp: { type:"v3", value:new THREE.Vector3(0.0,1.0,0.0) },
+            iGlobalTime: { type: 'f', value: shaderPlane.time },
+            amplitude:  { type: "fv1", value: [] } 
         };
         var mat = new THREE.ShaderMaterial( {
                 uniforms: shaderPlane.tuniform,
@@ -150,9 +155,6 @@
         shaderPlane.qualityControl.onChange(function(value) {
             shaderPlane.resizePerformance()
         });
-        shaderPlane.timeControl.onChange(function(value) {
-            shaderPlane.tuniform.iGlobalTime.value = value;
-        });
         
      /*   [shaderPlane.timeControl, shaderPlane.qualityControl, shaderPlane.minDistanceControl, shaderPlane.normalControl, shaderPlane.pausedControl].forEach(function(control){
             control.onFinishChange(function(value) {
@@ -182,11 +184,11 @@
         switch(e.charCode){
             //Movement speed
             case "z".charCodeAt(0):
-                shaderPlane.controls.movementSpeed += 0.05
+                shaderPlane.controls.movementSpeed += 2.0
                 break;
             case "x".charCodeAt(0):
                 if(shaderPlane.controls.movementSpeed > 0){
-                    shaderPlane.controls.movementSpeed -= 0.05  
+                    shaderPlane.controls.movementSpeed -= 2.0 
                 }
                 break;
             // paused
@@ -208,7 +210,6 @@
         vectorDir.applyQuaternion( shaderPlane.movementCamera.quaternion ).normalize();
         var vectorUp = new THREE.Vector3( 0, 1, 0 );
         vectorUp.applyQuaternion( shaderPlane.movementCamera.quaternion ).normalize();
-
         shaderPlane.tuniform.iCamDir.value.set(vectorDir.x, vectorDir.y, vectorDir.z);
         shaderPlane.tuniform.iCamUp.value.set(vectorUp.x, vectorUp.y, vectorUp.z);
         shaderPlane.tuniform.iCamPosition.value.set(shaderPlane.movementCamera.position.x, shaderPlane.movementCamera.position.y, shaderPlane.movementCamera.position.z);
@@ -225,6 +226,14 @@
             shaderPlane.tuniform.iGlobalTime.value += delta;
             //shaderPlane.time += delta;
         }
+
+        shaderPlane.audioAnalyser.getByteFrequencyData(shaderPlane.dataArray);
+
+        for(var i = 0; i < 50; i++) {
+            shaderPlane.tuniform.amplitude.value[i] = -(shaderPlane.dataArray[(i + 10) * 2] / 255) + 1;
+        };
+        //console.log(shaderPlane.dataArray[0])
+
         //shaderPlane.tuniform.iRenderTime.value = shaderPlane.stats;
     }
 

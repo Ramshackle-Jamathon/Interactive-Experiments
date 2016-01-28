@@ -23,7 +23,7 @@ float snoise( vec2 p ) {
 }
 
 float terrain( vec2 p, int octaves ) {	
-	float h = 0.0; // height
+/*	float h = 0.0; // height
 	float w = 0.5; // octave weight
 	float m = 0.4; // octave multiplier
 	for (int i=0; i<16; i++) {
@@ -33,8 +33,8 @@ float terrain( vec2 p, int octaves ) {
 		else break;
 		w *= 0.5;
 		m *= 2.0;
-	}
-	return h;
+	}*/
+	return sin(p.x) * sin(p.y);
 }
 
 vec2 map( vec3 p, int octaves ) {
@@ -68,11 +68,11 @@ vec2 map( vec3 p, int octaves ) {
 }
 
 vec2 castRay( vec3 ro, vec3 rd, int octaves) {
-	const float p = 0.0001; // precision
+	const float p = 0.00001; // precision
 	float t = 0.0; // distance
 	float h = p * 2.0; // step
 	float m = -1.0;
-	for (int i=0; i<34; i++) {
+	for (int i=0; i<50; i++) {
 		if (abs(h)>p || t<dMax ) {
 			t += h; // next step
 			vec2 res = map(ro + rd*t, octaves); // get intersection
@@ -85,11 +85,11 @@ vec2 castRay( vec3 ro, vec3 rd, int octaves) {
 	return vec2(t, m);
 }
 
-vec3 calcNormal( vec3 p, int octaves) {
+vec3 calcNormal(vec3 p) {
 	const vec3 eps = vec3(0.0005, 0.0, 0.0);
-	return normalize( vec3(map(p+eps.xyy, octaves).x - map(p-eps.xyy, octaves).x,
-			       map(p+eps.yxy, octaves).x - map(p-eps.yxy, octaves).x,
-			       map(p+eps.yyx, octaves).x - map(p-eps.yyx, octaves).x) );
+	return normalize( vec3(p.x - (p-eps.xyy).x,
+			       (p+eps.yxy).x - (p-eps.yxy).x,
+			       (p+eps.yyx).x - (p-eps.yyx).x) );
 }
 
 float shadows( vec3 ro, vec3 rd, float tMax, float k, int octaves ) {
@@ -125,21 +125,13 @@ vec3 render( vec3 ro, vec3 rd ) {
 	int norLOD = int(max(2.0, 12.0-11.0*res.x/dMax));
 	
 	vec3 pos = ro + rd*res.x; // terrain pos
-	vec3 nor = calcNormal(pos, norLOD); // terrain normals
+	vec3 nor = calcNormal(pos); // terrain normals
 	
 	// mat 0 = terrain
 	if (res.y>-0.5&&res.y<0.5) {
 		
 		// base rock colors
-		color = mix( vec3(0.2, 0.2, 0.2), vec3(0.25, 0.2, 0.15), smoothstep(0.7, 1.0, nor.y) );
-		
-		// layer noise (to produdce lighter color bands of rock)
-		float n = 0.5*(snoise(pos.xy*vec2(2.0, 40.0))+1.0);
-		// rock layers should show most where nomals are NOT straight up
-		color = mix( n*vec3(0.5, 0.4, 0.4), color, nor.y ); 
-		
-		// grass & moss grows thickest where normals are straight up
-		color = mix( color, vec3(0.0, 0.05, -0.05), smoothstep(0.7, 0.9, nor.y) );
+		color = mix( vec3(0.2, 0.2, 0.2), vec3(0.2, 0.2, 0.2), vec3(0.2, 0.2, 0.2) );
 		
 		// add in lighting and shadows
 		float lAmb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0); // ambient
@@ -153,7 +145,7 @@ vec3 render( vec3 ro, vec3 rd ) {
 	}
 	//.mat 1 = trees
 	if (res.y>0.5) {
-		color = mix( vec3(0.15, 0.05, 0.0), vec3(0.05, 0.1, 0.0), smoothstep(0.0, 0.7, nor.y) );
+		color = mix( vec3(0.1, 0.1, 0.1), vec3(0.1, 0.1, 0.1), vec3(0.1, 0.1, 0.1) );
 		
 		// add in lighting and shadows
 		float lAmb = clamp( 0.5 + 0.5 * nor.y, 0.0, 1.0); // ambient
