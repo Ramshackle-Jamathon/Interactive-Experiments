@@ -147,15 +147,7 @@ vec3 GetSky(in vec3 rd)
 vec3 ApplyFog( in vec3  rgb, in float dis, in vec3 dir)
 {
     float fogAmount = exp(-dis* 0.00005);
-    return mix((GetSky(dir)), normalize(rgb), normalize(fogAmount) );
-
-    float fog = exp(-0.005 * dis); // exponentioal fog equation
-
-    float sunAmount = max( dot( dir, sunLight), 0.0 );
-    float v = pow(1.0-max(dir.y,0.0),5.0)*.5;
-    vec3  sky = vec3(v*sunColour.x*0.4+0.18, v*sunColour.y*0.4+0.22, v*sunColour.z*0.4+.4);
-
-    return mix(sky, normalize(rgb), normalize(fog)); // add fog in valleys and distance
+    return mix((GetSky(dir)),   (rgb), (fogAmount) );
 }
 
 //--------------------------------------------------------------------------
@@ -201,10 +193,9 @@ vec3 TerrainColour(vec3 pos, vec3 normal, float dis)
         vec3 watPos = matPos;
         mat = mix(mat, vec3(.5,.6,1.0)*.7, clamp((watPos.y-matPos.y)*.35, .1, .9));
     }
-    mat = ApplyFog(mat, dis, dir);
     
     float fogAmount = exp(-dis* 0.002);
-    mat = mix(vec3(.5,.6,1.0), mat, fogAmount );
+    mat = mix(vec3(.5,.6,1.0), normalize(mat), fogAmount );
 
     return mat;
 }
@@ -238,7 +229,7 @@ bool Scene(in vec3 rO, in vec3 rD, out float resT, in vec2 fragCoord )
     bool fin = false;
     bool res = false;
     vec2 distances;
-    for( int j=0; j< 330; j++ )
+    for( int j=0; j< 350; j++ )
     {
         if (fin || t > 800.0) break;
         vec3 p = rO + t*rD;
