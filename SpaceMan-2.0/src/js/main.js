@@ -32,6 +32,7 @@ require("../css/style.scss");
 
         var windowHalfX = document.body.clientWidth / 2;
         var windowHalfY = document.body.clientHeight / 2;
+        var clickActive = false;
 
         var raycaster = new THREE.Raycaster();
         var mouse = new THREE.Vector2();
@@ -226,78 +227,79 @@ require("../css/style.scss");
 
 
         function onDocumentClick( event ) {
+            if (!clickActive){
+                clickActive = true;
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; 
 
-            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1; 
+                // update the picking ray with the camera and mouse position    
+                raycaster.setFromCamera( mouse, camera, 100 );   
 
-            // update the picking ray with the camera and mouse position    
-            raycaster.setFromCamera( mouse, camera, 100 );   
-
-            // calculate objects intersecting the picking ray
-            var intersects = raycaster.intersectObjects( scene.children );
-
-            for ( var i = 0; i < intersects.length; i++ ) {
-                console.log(intersects[ i ])
-                if(intersects[ i ].object.name == "textLeft" ){
-                    textLeft.geometry.computeBoundingBox();
-                    boundingBox = textLeft.geometry.boundingBox;
-                    clickedMesh = textLeft
-                    updateLight = false;
-                }   
-                if(intersects[ i ].object.name == "textRight" ){
-                    textRight.geometry.computeBoundingBox();
-                    boundingBox = textRight.geometry.boundingBox;
-                    clickedMesh = textRight
-                    updateLight = false;
+                // calculate objects intersecting the picking ray
+                var intersects = raycaster.intersectObjects( scene.children );
+                for ( var i = 0; i < intersects.length; i++ ) {
+                    if(intersects[ i ].object.name == "textLeft" ){
+                        textLeft.geometry.computeBoundingBox();
+                        boundingBox = textLeft.geometry.boundingBox;
+                        clickedMesh = textLeft
+                        updateLight = false;
+                    }   
+                    if(intersects[ i ].object.name == "textRight" ){
+                        textRight.geometry.computeBoundingBox();
+                        boundingBox = textRight.geometry.boundingBox;
+                        clickedMesh = textRight
+                        updateLight = false;
+                    }
+                
                 }
-            
+                if(typeof boundingBox === 'undefined') {
+                    clickActive = false;
+                    return;
+                }
+                var x0 = boundingBox.min.x;
+                var x1 = boundingBox.max.x;
+                var y0 = boundingBox.min.y;
+                var y1 = boundingBox.max.y;
+                var z0 = boundingBox.min.z;
+                var z1 = boundingBox.max.z;
+
+
+                var bWidth = ( x0 > x1 ) ? x0 - x1 : x1 - x0;
+                var bHeight = ( y0 > y1 ) ? y0 - y1 : y1 - y0;
+                var bDepth = ( z0 > z1 ) ? z0 - z1 : z1 - z0;
+
+                var centroidX = x0 + ( bWidth / 2 ) + clickedMesh.position.x;
+                var centroidY = y0 + ( bHeight / 2 )+ clickedMesh.position.y;
+                var centroidZ = z0 + ( bDepth / 2 ) + clickedMesh.position.z;
+
+                centroid = { x : centroidX, y : centroidY, z : centroidZ };
+
+                var tweenFirst = new TWEEN.Tween(camera.position)
+                        .to({x: centroid.x,y: centroid.y,z: 230}, 800)
+                        .easing(TWEEN.Easing.Cubic.InOut)
+                var tweenSecond;
+
+
+                if( mouseX > 0){
+                    textRightUniforms.myLightPos.value = new THREE.Vector3(-centroid.x,centroid.y,400.0);
+                    tweenSecond = new TWEEN.Tween(camera.position).delay(100)
+                        .to({x: centroid.x,y: centroid.y+200,z: -1000}, 1000)
+                        .easing(TWEEN.Easing.Quadratic.In)
+                        .onComplete(function(){
+                            top.location.href = 'http://github.com/Ramshackle-Jamathon';
+                        })
+                } else{
+                    textLeftUniforms.myLightPos.value = new THREE.Vector3(-centroid.x,centroid.y,400.0);
+                    tweenSecond = new TWEEN.Tween(camera.position).delay(100)
+                        .to({x: centroid.x,y: centroid.y+200,z: -1000}, 1000)
+                        .easing(TWEEN.Easing.Quadratic.In)
+                        .onComplete(function(){
+                            top.location.href = 'http://neverwork.in/author/ramshackle-jamathon/';
+                        })
+                } 
+                tweenFirst.chain(tweenSecond)
+                tweenFirst.start()
             }
-            if(boundingBox === undefined || boundingBox === null) {
-                return;
-            }
-            var x0 = boundingBox.min.x;
-            var x1 = boundingBox.max.x;
-            var y0 = boundingBox.min.y;
-            var y1 = boundingBox.max.y;
-            var z0 = boundingBox.min.z;
-            var z1 = boundingBox.max.z;
-
-
-            var bWidth = ( x0 > x1 ) ? x0 - x1 : x1 - x0;
-            var bHeight = ( y0 > y1 ) ? y0 - y1 : y1 - y0;
-            var bDepth = ( z0 > z1 ) ? z0 - z1 : z1 - z0;
-
-            var centroidX = x0 + ( bWidth / 2 ) + clickedMesh.position.x;
-            var centroidY = y0 + ( bHeight / 2 )+ clickedMesh.position.y;
-            var centroidZ = z0 + ( bDepth / 2 ) + clickedMesh.position.z;
-
-            centroid = { x : centroidX, y : centroidY, z : centroidZ };
-
-            var tweenFirst = new TWEEN.Tween(camera.position)
-                    .to({x: centroid.x,y: centroid.y,z: 230}, 800)
-                    .easing(TWEEN.Easing.Cubic.InOut)
-            var tweenSecond;
-
-
-            if( mouseX > 0){
-                textRightUniforms.myLightPos.value = new THREE.Vector3(-centroid.x,centroid.y,400.0);
-                tweenSecond = new TWEEN.Tween(camera.position).delay(100)
-                    .to({x: centroid.x,y: centroid.y+200,z: -1000}, 1000)
-                    .easing(TWEEN.Easing.Quadratic.In)
-                    .onComplete(function(){
-                        top.location.href = 'http://github.com/Ramshackle-Jamathon';
-                    })
-            } else{
-                textLeftUniforms.myLightPos.value = new THREE.Vector3(-centroid.x,centroid.y,400.0);
-                tweenSecond = new TWEEN.Tween(camera.position).delay(100)
-                    .to({x: centroid.x,y: centroid.y+200,z: -1000}, 1000)
-                    .easing(TWEEN.Easing.Quadratic.In)
-                    .onComplete(function(){
-                        top.location.href = 'http://neverwork.in/author/ramshackle-jamathon/';
-                    })
-            } 
-            tweenFirst.chain(tweenSecond)
-            tweenFirst.start()
         }
 
 
