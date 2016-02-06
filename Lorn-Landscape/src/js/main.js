@@ -33,6 +33,7 @@
     document.addEventListener("DOMContentLoaded", function(event) { 
         NProgress.start();
         shaderPlane.loadResources();
+        shaderPlane.showControls();  
     });
 
     shaderPlane.loadResources = function() {
