@@ -61,7 +61,7 @@
                     shaderPlane.dataArray = new Uint8Array( bufferLength );
 
                     //play immediately 
-                    shaderPlane.audioSource.start(0);
+                    //shaderPlane.audioSource.start(0);
                     NProgress.set(0.8); 
                     shaderPlane.init();
                 }); 
