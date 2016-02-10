@@ -25,7 +25,7 @@
         time: 0.1,
         quality: 0.2,
         showControls: function(){
-            alert("Fractal Flyer \n\nControls:\n WASD: Movement\n QE: Roll \n ZX: Speed\n G: (Un)Freeze Camera")
+            alert("Lorn Landscape \n\nControls:\n WASD: Movement\n QE: Roll \n ZX: Speed\n G: (Un)Freeze Camera")
         }
             
     }

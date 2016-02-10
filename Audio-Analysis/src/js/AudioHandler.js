@@ -7,9 +7,9 @@ var AudioHandler = function() {
 	var bpmTime = 0; // bpmTime ranges from 0 to 1. 0 = on beat. Based on tap bpm
 	var ratedBPMTime = 550;//time between beats (msec) multiplied by BPMRate
 	var levelHistory = []; //last 256 ave norm levels
-	var bpmStart; 
+	var bpmStart = 0; 
 
-	var sampleAudioURL = "textures/hair-by-debbie.mp3";
+	var sampleAudioURL = "textures/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_Club.mp3";
 	var BEAT_HOLD_TIME = 40; //num of frames to hold a beat
 	var BEAT_DECAY_RATE = 0.98;
 	var BEAT_MIN = 0.15; //a volume less than this is no beat
@@ -31,7 +31,7 @@ var AudioHandler = function() {
 
 	var freqByteData; //bars - bar data is from 0 - 256 in 512 bins. no sound is 0;
 	var timeByteData; //waveform - waveform data is from 0-256 for 512 bins. no sound is 128.
-	var levelsCount = 16; //should be factor of 512
+	var levelsCount = 256; //should be factor of 512
 	
 	var binCount; //512
 	var levelBins;
@@ -54,7 +54,7 @@ var AudioHandler = function() {
 		analyser = audioContext.createAnalyser();
 		analyser.smoothingTimeConstant = 0.8; //0<->1. 0 is no time smoothing
 		analyser.fftSize = 1024;
-		//analyser.connect(audioContext.destination);
+		analyser.connect(audioContext.destination);
 		binCount = analyser.frequencyBinCount; // = 512
 
 		levelBins = Math.floor(binCount / levelsCount); //number of bins in each level
@@ -277,10 +277,20 @@ var AudioHandler = function() {
 
 
 		bpmTime = (new Date().getTime() - bpmStart)/msecsAvg;
-
+/*
 		console.log("waves: " + waveData)
 		console.log("levels: " + levelsData)
 		console.log("bpmTime: " + bpmTime)
+
+*/
+		return {
+			levelsData:levelsData,
+			bpmTime:bpmTime,
+			waveData:waveData,
+			gotBeat:gotBeat,
+			beatCutOff:beatCutOff,
+			beatTime:beatTime
+		};
 	}
 
 	return {
@@ -291,6 +301,8 @@ var AudioHandler = function() {
 		init:init,
 		level:level,
 		levelsData:levelsData,
+		bpmTime:bpmTime,
+		waveData:waveData,
 		onTogglePlay:onTogglePlay
 	};
 
