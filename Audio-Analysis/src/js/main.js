@@ -21,7 +21,14 @@
     if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
     function init() {
+
+        document.onselectstart = function() {
+            return false;
+        };
         document.addEventListener('drop', onDocumentDrop, false);
+        document.addEventListener('dragover', onDocumentDragOver, false);
+
+        window.addEventListener( 'resize', onWindowResize, false );
         createScene();
         audioHandler.init();
         audioHandler.onUseSample();
@@ -73,7 +80,7 @@
         var geometry = new THREE.Geometry();
         for (var i = -256; i < 256; i++) {
             geometry.vertices.push(
-                new THREE.Vector3( -340, i, 200 )
+                new THREE.Vector3( -340, i * 1.25 - 20, 200 )
             )
 
         }
@@ -92,8 +99,6 @@
             container.appendChild( stats.domElement );
 
         }
-        window.addEventListener( 'resize', onWindowResize, false );
-    
     }
 
     function animate() {
@@ -106,7 +111,6 @@
         controls.update();
         audioData = audioHandler.update()
         if(typeof audioData !== 'undefined'){
-                console.log(audioData.waveData)
             for(var i = 0; i < audioData.waveData.length; i++) {
                 waveform.geometry.vertices[i].z = 200 + 100 * audioData.waveData[i]
             }
@@ -137,9 +141,14 @@
 
         renderer.setSize( window.innerWidth, window.innerHeight );
     }
-
+    function onDocumentDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        return false;
+    }
     //load dropped MP3
     function onDocumentDrop(evt) {
+        console.log("dropped")
         evt.stopPropagation();
         evt.preventDefault();
         audioHandler.onMP3Drop(evt);

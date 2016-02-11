@@ -9,13 +9,14 @@ var AudioHandler = function() {
 	var levelHistory = []; //last 256 ave norm levels
 	var bpmStart = 0; 
 
-	var sampleAudioURL = "textures/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_Club.mp3";
+	var sampleAudioURL = "textures/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_ClubHQ.mp3";
+	//var sampleAudioURL = "textures/recit24.flac";
 	var BEAT_HOLD_TIME = 40; //num of frames to hold a beat
 	var BEAT_DECAY_RATE = 0.98;
-	var BEAT_MIN = 0.15; //a volume less than this is no beat
+	var BEAT_MIN = 0.30; //a volume less than this is no beat
 
 	//variables
-	var audioGain = 0.7
+	var audioGain = 1.0
 	var beatHold = 40
 	var beatDecay = 0.97
 	//BPM STUFF
@@ -246,7 +247,7 @@ var AudioHandler = function() {
 
 			//adjust for the fact that lower levels are percieved more quietly
 			//make lower levels smaller
-			//levelsData[i] *=  1 + (i/levelsCount)/2;
+			levelsData[i] *=  1 + (i/levelsCount)/2;
 		}
 		//TODO - cap levels at 1?
 
