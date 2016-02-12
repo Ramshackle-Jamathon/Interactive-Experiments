@@ -47,10 +47,10 @@ var AudioHandler = function() {
 	var dropArea;
 	var audioContext;
 	var analyser;
+	var microphone;
 
 	function init() {
 		//EVENT HANDLERS
-
 		audioContext = new window.AudioContext || new window.webkitAudioContext;
 		analyser = audioContext.createAnalyser();
 		analyser.smoothingTimeConstant = 0.8; //0<->1. 0 is no time smoothing
@@ -111,43 +111,90 @@ var AudioHandler = function() {
 		source.loop = true;
 		source.start(0.0);
 		isPlayingAudio = true;
-		//startViz();
 	}
+
+
 
 	function stopSound(){
 		isPlayingAudio = false;
 		if (source) {
-			source.stop(0);
-			source.disconnect();
+			if(microphone){
+				microphone.disconnect();
+				source = audioContext.createBufferSource();
+				analyser = audioContext.createAnalyser();
+				analyser.fftSize = 1024;
+				analyser.smoothingTimeConstant = 0.8; 
+			} else {
+				source.stop(0);
+				source.disconnect();
+			}
 		}
 	}
 
 	function onUseMic(){
-
-		if (usingMic){
-			usingSample = false;
+		if(microphone){
+			stopSound()
+			loadSampleAudio()
+			microphone = undefined
+		} else {
 			getMicInput();
-		}else{
-			stopSound();
+		}
+	}
+	
+	function onUseSample(){
+		loadSampleAudio();          
+	}
+
+/*
+
+	function stopSound(){
+		isPlayingAudio = false;
+		if (source) {
+			if(usingSample){
+				source.stop(0);
+				source.disconnect();
+			} else {
+				microphone.disconnect();
+				source = audioContext.createBufferSource();
+				analyser = audioContext.createAnalyser();
+				analyser.fftSize = 1024;
+				analyser.smoothingTimeConstant = 0.8; 
+			}
+		}
+	}
+
+	function onUseMic(){
+		if (usingSample){
+			stopSound()
+			getMicInput();
+			usingSample = false;        
+			usingMic = true;
+		}else{        
+			microphone.disconnect();
+			source = audioContext.createBufferSource();
+			analyser = audioContext.createAnalyser();
+			analyser.fftSize = 1024;
+			analyser.smoothingTimeConstant = 0.8; 
+			startSound()
+			loadSampleAudio()
+			usingSample = true; 
+			usingMic = false;
 		}
 	}
 	
 	function onUseSample(){
 		if (usingSample){
-			loadSampleAudio();          
+			loadSampleAudio(); 
+			usingSample = true; 
 			usingMic = false;
 		}else{
 			stopSound();
+			usingSample = false;        
+			usingMic = true;
 		}
-	}
+	}*/
 	//load dropped MP3
 	function onMP3Drop(evt) {
-
-		//TODO - uncheck mic and sample in CP
-
-		usingSample = false;
-		usingMic = false;
-
 		stopSound();
 
 		initSound();
@@ -196,7 +243,7 @@ var AudioHandler = function() {
 					source = audioContext.createBufferSource();
 					analyser = audioContext.createAnalyser();
 					analyser.fftSize = 1024;
-					analyser.smoothingTimeConstant = 0.3; 
+					analyser.smoothingTimeConstant = 0.8; 
 
 					microphone = audioContext.createMediaStreamSource(stream);
 					microphone.connect(analyser);
@@ -229,8 +276,6 @@ var AudioHandler = function() {
 		analyser.getByteFrequencyData(freqByteData); //<-- bar chart
 		analyser.getByteTimeDomainData(timeByteData); // <-- waveform
 
-		//console.log(freqByteData);
-
 		//normalize waveform data
 		for(var i = 0; i < binCount; i++) {
 			waveData[i] = ((timeByteData[i] - 128) /128 )* audioGain;
@@ -244,7 +289,6 @@ var AudioHandler = function() {
 				sum += freqByteData[(i * levelBins) + j];
 			}
 			levelsData[i] = sum / levelBins/256 * audioGain; //freqData maxs at 256
-
 			//adjust for the fact that lower levels are percieved more quietly
 			//make lower levels smaller
 			levelsData[i] *=  1 + (i/levelsCount)/2;
@@ -278,12 +322,7 @@ var AudioHandler = function() {
 
 
 		bpmTime = (new Date().getTime() - bpmStart)/msecsAvg;
-/*
-		console.log("waves: " + waveData)
-		console.log("levels: " + levelsData)
-		console.log("bpmTime: " + bpmTime)
 
-*/
 		return {
 			levelsData:levelsData,
 			bpmTime:bpmTime,

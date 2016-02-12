@@ -9,14 +9,22 @@
     var AudioHandler = require('./AudioHandler');
     var audioData;
 
-    var gui = new dat.gui.GUI();
     var audioHandler = new AudioHandler();
 
     var statsEnabled = true;
     var container;
-    var camera, scene, renderer, stats;
+    var camera, scene, renderer, stats, gui;
     var levels = [];
     var waveform;
+
+    var audioParams = {
+        useMic: false,
+        useSample:true,
+        volSens:1,
+        beatHoldTime:40,
+        beatDecayRate:0.97,
+        sampleURL: "textures/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_ClubHQ.mp3"
+    };
 
     if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -30,8 +38,17 @@
 
         window.addEventListener( 'resize', onWindowResize, false );
         createScene();
+
+        gui = new dat.gui.GUI();
+        gui.add(audioParams, 'useMic').listen().onFinishChange(audioHandler.onUseMic).name("Use Mic");
+       /* gui.add(audioParams, 'volSens', 0, 5).step(0.1).name("Gain");
+        gui.add(audioParams, 'beatHoldTime', 0, 100).step(1).name("Beat Hold");
+        gui.add(audioParams, 'beatDecayRate', 0.9, 1).step(0.01).name("Beat Decay");*/
+
+
         audioHandler.init();
         audioHandler.onUseSample();
+
         animate();
     }
 
@@ -148,9 +165,10 @@
     }
     //load dropped MP3
     function onDocumentDrop(evt) {
-        console.log("dropped")
         evt.stopPropagation();
         evt.preventDefault();
+        audioParams.useMic = false;
+        gui.__controllers[0].updateDisplay();
         audioHandler.onMP3Drop(evt);
     }
 
