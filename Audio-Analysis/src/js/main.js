@@ -11,11 +11,9 @@
 
     var audioHandler = new AudioHandler();
 
-    var statsEnabled = true;
-    var container;
-    var camera, scene, renderer, stats, gui;
+    var statsEnabled = false;
+    var container, waveform, camera, scene, renderer, stats, gui, audioData, micHandle;
     var levels = [];
-    var waveform;
 
     var audioParams = {
         useMic: false,
@@ -40,7 +38,7 @@
         createScene();
 
         gui = new dat.gui.GUI();
-        gui.add(audioParams, 'useMic').listen().onFinishChange(audioHandler.onUseMic).name("Use Mic");
+        micHandle = gui.add(audioParams, 'useMic').listen().onChange(audioHandler.onUseMic).name("Use Mic");
        /* gui.add(audioParams, 'volSens', 0, 5).step(0.1).name("Gain");
         gui.add(audioParams, 'beatHoldTime', 0, 100).step(1).name("Beat Hold");
         gui.add(audioParams, 'beatDecayRate', 0.9, 1).step(0.01).name("Beat Decay");*/
@@ -167,8 +165,6 @@
     function onDocumentDrop(evt) {
         evt.stopPropagation();
         evt.preventDefault();
-        audioParams.useMic = false;
-        gui.__controllers[0].updateDisplay();
         audioHandler.onMP3Drop(evt);
     }
 

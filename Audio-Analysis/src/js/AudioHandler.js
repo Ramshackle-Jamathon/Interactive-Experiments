@@ -10,7 +10,6 @@ var AudioHandler = function() {
 	var bpmStart = 0; 
 
 	var sampleAudioURL = "textures/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_ClubHQ.mp3";
-	//var sampleAudioURL = "textures/recit24.flac";
 	var BEAT_HOLD_TIME = 40; //num of frames to hold a beat
 	var BEAT_DECAY_RATE = 0.98;
 	var BEAT_MIN = 0.30; //a volume less than this is no beat
@@ -123,7 +122,8 @@ var AudioHandler = function() {
 				source = audioContext.createBufferSource();
 				analyser = audioContext.createAnalyser();
 				analyser.fftSize = 1024;
-				analyser.smoothingTimeConstant = 0.8; 
+				analyser.connect(audioContext.destination);
+				analyser.smoothingTimeConstant = 0.8;
 			} else {
 				source.stop(0);
 				source.disconnect();
@@ -145,60 +145,10 @@ var AudioHandler = function() {
 		loadSampleAudio();          
 	}
 
-/*
-
-	function stopSound(){
-		isPlayingAudio = false;
-		if (source) {
-			if(usingSample){
-				source.stop(0);
-				source.disconnect();
-			} else {
-				microphone.disconnect();
-				source = audioContext.createBufferSource();
-				analyser = audioContext.createAnalyser();
-				analyser.fftSize = 1024;
-				analyser.smoothingTimeConstant = 0.8; 
-			}
-		}
-	}
-
-	function onUseMic(){
-		if (usingSample){
-			stopSound()
-			getMicInput();
-			usingSample = false;        
-			usingMic = true;
-		}else{        
-			microphone.disconnect();
-			source = audioContext.createBufferSource();
-			analyser = audioContext.createAnalyser();
-			analyser.fftSize = 1024;
-			analyser.smoothingTimeConstant = 0.8; 
-			startSound()
-			loadSampleAudio()
-			usingSample = true; 
-			usingMic = false;
-		}
-	}
-	
-	function onUseSample(){
-		if (usingSample){
-			loadSampleAudio(); 
-			usingSample = true; 
-			usingMic = false;
-		}else{
-			stopSound();
-			usingSample = false;        
-			usingMic = true;
-		}
-	}*/
 	//load dropped MP3
 	function onMP3Drop(evt) {
 		stopSound();
-
 		initSound();
-
 		var droppedFiles = evt.dataTransfer.files;
 		var reader = new FileReader();
 		reader.onload = function(fileEvent) {
@@ -210,7 +160,6 @@ var AudioHandler = function() {
 
 	//called from dropped MP3
 	function onDroppedMP3Loaded(data) {
-
 		if(audioContext.decodeAudioData) {
 			audioContext.decodeAudioData(data, function(buffer) {
 				audioBuffer = buffer;
