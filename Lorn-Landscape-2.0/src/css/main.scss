@@ -1,0 +1,41 @@
+$bgCol: #688CB1;
+
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+html, body {
+    height: 100%;
+}
+
+body, canvas {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    position: relative;
+    overflow: hidden;
+    background-color: $bgCol;
+    /*background: linear-gradient(to bottom, #61a5dd 0%, #aeecfe 100%);*/
+    background: linear-gradient(to bottom, #61a5dd 0%, #befcfe 40%, #ffffff 60%);
+
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    perspective: 1000;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
