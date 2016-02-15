@@ -14,7 +14,7 @@ export default class App {
         this.camera = new THREE.Camera()
         this.movementCamera = new THREE.Camera()
         this.scene = new THREE.Scene()
-        this.renderer = new THREE.WebGLRenderer( { antialias: false } )
+        this.renderer = new THREE.WebGLRenderer( { antialias: true } )
         this.quality = 0.2
         this.contrast = 1.1
         this.saturation = 1.12
@@ -24,7 +24,11 @@ export default class App {
             alert('Lorn Landscape \n\nControls:\n WASD: Movement\n QE: Roll \n ZX: Speed\n G: (Un)Freeze Camera')
         }
     }
-
+    /*
+     * @function start
+     * @description runs the app
+     *
+     */
     start(){
         if ( ! Detector.webgl ){ 
             Detector.addGetWebGLMessage();
@@ -68,14 +72,13 @@ export default class App {
 
     /*
      *  @function initScene
-     *  @description loads and plays sample mp3
+     *  @description adds objects to our scene and places the renderer into the dom
      */
     initScene() {
-
         //movement camera, not added to scene but used for calculator vectors which are passed to the shader
         this.movementCamera.lookAt(new THREE.Vector3(0.60,0.2,0.75));
-        //this.movementCamera.position(new THREE.Vector3(1.0, 0.0, 0.0));
-        //this.movementCamera.up.set(new THREE.Vector3(0.0, 1.0, 0.0));
+        this.movementCamera.position.set(1.0, 0.0, 0.0);
+        this.movementCamera.up.set(0.0, 1.0, 0.0);
         this.controls = this.createFlightControls()
 
         //static camera placed infront of shaderplane
@@ -90,22 +93,21 @@ export default class App {
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.container.appendChild( this.renderer.domElement );
 
-        //hardware acceleration for webkit
-        this.resizePerformance();
-
+        //TODO: touch controls
         window.addEventListener( 'keypress', this.keyPress.bind(this)) ;
         window.addEventListener( 'resize', this.onWindowResize.bind(this), false ); 
         
         NProgress.done();
 
+        this.resizePerformance();
         this.addHud();
+        //enter render loop
         this.render(this);
-        
     } 
 
     /*
      *  @function createFlightControls
-     *  @description Adds flight controls with quaternion to movementcamera
+     *  @description Adds flight controls to movementcamera. uses quaternions to prevent gimbal lock
      *
      */
     createFlightControls () {
@@ -125,10 +127,10 @@ export default class App {
      */
     createShaderPlane () {
         this.uniforms = {
-            uResolution: { type:"v2", value:new THREE.Vector2(window.innerWidth,window.innerHeight) },
-            uCamPosition: { type:"v3", value:new THREE.Vector3(1.0,0.0,0.0) }, //TODO: get these inits from movermentCamera
-            uCamDir: { type:"v3", value:new THREE.Vector3(1.0,0.0,0.0) },
-            uCamUp: { type:"v3", value:new THREE.Vector3(0.0,1.0,0.0) },
+            uResolution: { type:"v2", value: new THREE.Vector2(window.innerWidth,window.innerHeight) },
+            uCamPosition: { type:"v3", value: this.movementCamera.position.clone() },
+            uCamDir: { type:"v3", value: new THREE.Vector3( 0, 0, -1 ).applyQuaternion( this.movementCamera.quaternion ).normalize() },
+            uCamUp: { type:"v3", value: this.movementCamera.up.clone() },
             uContrast:  { type: "f", value: this.contrast },
             uSaturation:  { type: "f", value: this.saturation },
             uBrightness:  { type: "f", value: this.brightness },
@@ -156,10 +158,6 @@ export default class App {
     addHud () {
 
         this.stats = new Stats()
-        this.stats.domElement.style.position = 'absolute';
-        this.stats.domElement.style.top = '0px';
-        this.stats.domElement.style.left = '0px';
-        this.stats.domElement.style.zIndex = 100;
         this.container.appendChild( this.stats.domElement );
 
         this.gui = new dat.gui.GUI()
@@ -222,7 +220,7 @@ export default class App {
 
     /*
      *  @function resizePerformance
-     *  @description hack for resolution scalling of the canvas, Very important, The key to running on less powerfull devices
+     *  @description hack for resolution scalling of the canvas, Very important, The key to running on less powerful hardware
      *
      */
     resizePerformance () {

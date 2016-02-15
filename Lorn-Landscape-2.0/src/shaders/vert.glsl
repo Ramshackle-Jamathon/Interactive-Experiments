@@ -1,3 +1,5 @@
+//Bare bones vertex shader
+
 precision highp float;
 precision highp int;
 

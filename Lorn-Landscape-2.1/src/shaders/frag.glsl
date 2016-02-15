@@ -1,8 +1,7 @@
-// Mountains. By David Hoskins - 2013
+// Lorn Landscape Fragment Shader
 // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-
 // It uses binary subdivision to accurately find the height map.
-// Lots of thanks to Iñigo and his noise functions!
+// Lots of thanks to Iñigo(IQ) or his noise functions and David Hoskins for his terrain raymarching examples!
 
 uniform vec2 uResolution;
 uniform vec3 uCamPosition;
@@ -30,8 +29,8 @@ const mat2 rotate2D = mat2(1.3623, 1.7531, -1.7131, 1.4623);
 // Alternative rotation:-
 // const mat2 rotate2D = mat2(1.2323, 1.999231, -1.999231, 1.22);
 
-
-//  1 out, 2 in...
+//--------------------------------------------------------------------------
+// IQ's noise functions, super clutch
 float Hash12(vec2 p)
 {
     p  = fract(p / MOD2);
@@ -68,7 +67,7 @@ float Terrain(in vec2 p)
     
 
     //f += pow(abs(ff), 5.0)*275.-5.0;
-    return f * (amplitude[47]);
+    return f; //* (amplitude[47]);
     //return length(p)-4.0;
     //return  atan(tan(p.x));
     //return  cos(p.x/3.0) * cos(p.y/3.0) ;
