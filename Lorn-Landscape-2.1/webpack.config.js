@@ -1,6 +1,7 @@
 var PUBLIC = __dirname + "/public";
 
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var bourbon = require('node-bourbon').includePaths;
 module.exports = {
     entry: "./src/app.js",
     output: {
@@ -17,8 +18,8 @@ module.exports = {
             { test: /\.(glsl|vs|fs)$/, loader: 'shader' },
             { test: /\.png$/, loader: "url-loader?limit=100000" },
             { test: /\.jpg$/, loader: "file-loader" },
-            { test: /\.css$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader") },
-            { test: /\.scss$/,  loader: ExtractTextPlugin.extract("style", "css", "sass") },
+            { test: /\.css$/, loader: ExtractTextPlugin.extract("style", "!css") },
+            { test: /\.scss$/, loader: ExtractTextPlugin.extract("style", "css!sass?includePaths[]=" + bourbon) },
         ]
     },
     glsl: {

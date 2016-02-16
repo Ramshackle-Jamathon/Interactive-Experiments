@@ -1,29 +1,116 @@
+@import "bourbon";
+@import "nprogress";
+
+/* Variables */
+$animation-speed-fast: 200ms;
+$animation-speed-medium: 350ms;
+$animation-speed-slow: 750ms;
+$bg-col: #eee;
+$text-color: #111;
+
+/* default styles */
 html, body {
-  width:  100%;
-  height: 100%;
-  margin: 0px;
-  padding: 0px;
-  overflow-x: hidden; 
-  overflow-y: auto;
-  background: #000000;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    background-color: $bg-col;
+    overflow: hidden;
 }
 
-/* box for debugging output */
-#messageWindow {
+[messages]{
+  padding-left: 30px;
+  padding-bottom: 30px;
   pointer-events: none;
-  position:absolute;
-  bottom:0;
-  right:0;
-  width: 125pt;
-  height: 12pt;
-}
-
-#messages {
-  pointer-events: none;
-  color: #eee;
+  color: $text-color;
   font: 11px 'Lucida Grande', sans-serif;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  .title{
+    position: relative;
+    opacity: 0;
+    left: -80px;
+
+    @include transition(left $animation-speed-medium ease-in-out, opacity $animation-speed-medium ease-in-out);
+  }
+  .controls{
+    position: relative;
+    opacity: 0;
+    left: -80px;
+
+    @include transition(left $animation-speed-medium ease-in-out 75ms, opacity $animation-speed-medium ease-in-out 75ms);
+
+  }
+  .song{
+    position: relative;
+    opacity: 0;
+    left: -80px;
+
+    @include transition(left $animation-speed-medium ease-in-out 150ms, opacity $animation-speed-medium ease-in-out 150ms);
+  }
+  .btn{
+    position: relative;
+    pointer-events: all;
+    opacity: 0;
+    left: -80px;
+
+    @include transition(left $animation-speed-medium ease-in-out 225ms, opacity $animation-speed-medium ease-in-out 225ms);
+
+  }
+  &.active {
+    .title{  
+      opacity: 1;
+      left: 0px;
+
+      @include transition(left $animation-speed-medium ease-in-out , opacity $animation-speed-medium ease-in-out);
+    }
+    .controls{
+      opacity: 1;
+      left: 0px;
+
+      @include transition(left $animation-speed-medium ease-in-out 75ms, opacity $animation-speed-medium ease-in-out 75ms);
+
+    }
+    .song{
+      opacity: 1;
+      left: 0px;
+
+      @include transition(left $animation-speed-medium ease-in-out 150ms, opacity $animation-speed-medium ease-in-out 150ms);
+    }
+    .btn{
+      opacity: 1;
+      left: 0px;
+
+      @include transition(left $animation-speed-medium ease-in-out 225ms, opacity $animation-speed-medium ease-in-out 225ms);
+    }
+  }
 }
 
+.btn {
+  border: 3px solid;
+  font-style: bold;
+  font-size: 18px;
+  border-color: $text-color;
+  display: inline-block;
+  padding: 10px 26px;
+  @include border-top-radius(3px);
+  @include border-right-radius(3px);
+  @include border-bottom-radius(3px);
+  @include border-left-radius(3px);
+  @include transition(background-color $animation-speed-slow, color $animation-speed-fast);
+  &:hover{
+    @include transition(background-color $animation-speed-slow, color $animation-speed-fast);
+    color: $bg-col;
+    background-color: $text-color;
+  }
+}
+
+
+
+
+/* styling for Stats.js */
 #stats {
   position: absolute;
   cursor: pointer;  
@@ -31,6 +118,8 @@ html, body {
   left: 0px;
   z-index: 100;
 }
+
+/* styling for datGui.js*/
 .dg.a{
   margin-right: 0px !important;
 }

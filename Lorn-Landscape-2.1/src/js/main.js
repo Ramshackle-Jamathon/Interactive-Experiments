@@ -20,9 +20,15 @@ export default class App {
         this.saturation = 1.12
         this.brightness = 1.3
         this.clock = new THREE.Clock()
+        this.messageBox = document.getElementById('js_messages')
         this.showControls = function(){
-            alert('Lorn Landscape \n\nControls:\n WASD: Movement\n QE: Roll \n ZX: Speed\n G: (Un)Freeze Camera')
+          if (this.messageBox.classList.contains('active')) {
+           this.messageBox.classList.remove('active');
+          } else {
+           this.messageBox.classList.add('active');
+          }
         }
+        this.messageBox.classList.add('active')
     }
     /*
      * @function start
@@ -96,6 +102,7 @@ export default class App {
         //TODO: touch controls
         window.addEventListener( 'keypress', this.keyPress.bind(this)) ;
         window.addEventListener( 'resize', this.onWindowResize.bind(this), false ); 
+        document.getElementById( 'js_close').addEventListener( 'click', this.showControls.bind(this));
         
         NProgress.done();
 
@@ -161,7 +168,7 @@ export default class App {
         this.container.appendChild( this.stats.domElement );
 
         this.gui = new dat.gui.GUI()
-        //this.gui.close()
+        this.gui.close()
         var self = this
         this.qualityControl = this.gui.add(this, 'quality', 0.1, 2.0).step(0.1).name("Quality");
         this.qualityControl.onChange(function(value) {
@@ -212,7 +219,7 @@ export default class App {
                 }
                 break;
             // paused
-            case "g".charCodeAt(0):
+            case " ".charCodeAt(0):
                 this.controls.paused = !this.controls.paused 
                 break;
         }  
