@@ -52,58 +52,45 @@ body {
   }
   .btn{
     position: relative;
-    pointer-events: all;
     opacity: 0;
     left: -80px;
-
-    @include transition(left $animation-speed-medium ease-in-out 225ms, opacity $animation-speed-medium ease-in-out 225ms);
-
+    pointer-events: all;
+    border: 3px solid $text-color;
+    font-style: bold;
+    font-size: 18px;
+    display: inline-block;
+    padding: 10px 26px;
+    color: $text-color;
+    @include border-top-radius(3px);
+    @include border-right-radius(3px);
+    @include border-bottom-radius(3px);
+    @include border-left-radius(3px);
+    @include transition(left $animation-speed-medium ease-in-out 225ms, 
+                          opacity $animation-speed-medium ease-in-out 225ms,
+                          background-color $animation-speed-fast ease-in-out,
+                          color $animation-speed-fast ease-in-out);
+    &:hover, &:active{
+      color: $bg-col;
+      background-color: $text-color;
+    }
   }
   &.active {
     .title{  
       opacity: 1;
       left: 0px;
-
-      @include transition(left $animation-speed-medium ease-in-out , opacity $animation-speed-medium ease-in-out);
     }
     .controls{
       opacity: 1;
       left: 0px;
-
-      @include transition(left $animation-speed-medium ease-in-out 75ms, opacity $animation-speed-medium ease-in-out 75ms);
-
     }
     .song{
       opacity: 1;
       left: 0px;
-
-      @include transition(left $animation-speed-medium ease-in-out 150ms, opacity $animation-speed-medium ease-in-out 150ms);
     }
     .btn{
       opacity: 1;
       left: 0px;
-
-      @include transition(left $animation-speed-medium ease-in-out 225ms, opacity $animation-speed-medium ease-in-out 225ms);
     }
-  }
-}
-
-.btn {
-  border: 3px solid;
-  font-style: bold;
-  font-size: 18px;
-  border-color: $text-color;
-  display: inline-block;
-  padding: 10px 26px;
-  @include border-top-radius(3px);
-  @include border-right-radius(3px);
-  @include border-bottom-radius(3px);
-  @include border-left-radius(3px);
-  @include transition(background-color $animation-speed-slow, color $animation-speed-fast);
-  &:hover{
-    @include transition(background-color $animation-speed-slow, color $animation-speed-fast);
-    color: $bg-col;
-    background-color: $text-color;
   }
 }
 

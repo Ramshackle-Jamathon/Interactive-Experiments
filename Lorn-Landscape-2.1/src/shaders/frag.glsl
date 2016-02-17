@@ -1,7 +1,7 @@
 // Lorn Landscape Fragment Shader
 // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 // It uses binary subdivision to accurately find the height map.
-// Lots of thanks to Iñigo(IQ) or his noise functions and David Hoskins for his terrain raymarching examples!
+// Lots of thanks to Iñigo(IQ) for his noise functions and David Hoskins for his terrain raymarching examples!
 
 uniform vec2 uResolution;
 uniform vec3 uCamPosition;
@@ -10,6 +10,8 @@ uniform vec3 uCamUp;
 uniform float uContrast;
 uniform float uSaturation;
 uniform float uBrightness;
+uniform float uViewDistance;
+uniform int uHighDetail;
 uniform float amplitude[ 50 ];
 
 varying vec2 vUv;
@@ -63,13 +65,12 @@ float Terrain(in vec2 p)
         w = -w * 0.4;   //...Flip negative and positive for variation
         pos = rotate2D * pos;
     }
-    float ff = Noise(pos*.002);
-    
-
-    //f += pow(abs(ff), 5.0)*275.-5.0;
+    if(uHighDetail > 0){
+        float ff = Noise(pos*.002);
+        f += pow(abs(ff), 5.0)*275.-5.0;
+    }
     return f; //* (amplitude[47]);
     //return length(p)-4.0;
-    //return  atan(tan(p.x));
     //return  cos(p.x/3.0) * cos(p.y/3.0) ;
 }
 //--------------------------------------------------------------------------
@@ -79,21 +80,6 @@ float Map(in vec3 p)
     float h = Terrain(p.xz);
     return p.y - h;
 }
-//--------------------------------------------------------------------------
-float FractalNoise(in vec2 xy)
-{
-    float w = .7;
-    float f = 0.0;
-
-    for (int i = 0; i < 4; i++)
-    {
-        f += Noise(xy) * w;
-        w *= 0.5;
-        xy *= 2.7;
-    }
-    return f;
-}
-
 
 
 //--------------------------------------------------------------------------
@@ -207,9 +193,9 @@ bool Scene(in vec3 rO, in vec3 rD, out float resT, in vec2 fragCoord )
     bool fin = false;
     bool res = false;
     vec2 distances;
-    for( int j=0; j< 350; j++ )
+    for( int j=0; j< 300; j++ )
     {
-        if (fin || t > 800.0) break;
+        if (fin || t > uViewDistance) break;
         vec3 p = rO + t*rD;
         float h = Map(p); // ...Get this positions height mapping.
         // Are we inside, and close enough to fudge a hit?...

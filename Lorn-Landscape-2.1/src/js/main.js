@@ -15,18 +15,16 @@ export default class App {
         this.movementCamera = new THREE.Camera()
         this.scene = new THREE.Scene()
         this.renderer = new THREE.WebGLRenderer( { antialias: true } )
-        this.quality = 0.2
+        this.quality = 0.3
         this.contrast = 1.1
         this.saturation = 1.12
         this.brightness = 1.3
+        this.viewDistance = 700.0
+        this.highDetail = false
         this.clock = new THREE.Clock()
         this.messageBox = document.getElementById('js_messages')
         this.showControls = function(){
-          if (this.messageBox.classList.contains('active')) {
-           this.messageBox.classList.remove('active');
-          } else {
-           this.messageBox.classList.add('active');
-          }
+            (this.messageBox.classList.contains('active')? this.messageBox.classList.remove('active'):this.messageBox.classList.add('active'))
         }
         this.messageBox.classList.add('active')
     }
@@ -64,7 +62,7 @@ export default class App {
                 self.audioSource = self.audioContext.createBufferSource();  
                 self.audioSource.connect(self.audioAnalyser); 
                 //connect to the final output node (the speakers) 
-                //self.audioAnalyser.connect(self.audioContext.destination);
+                self.audioAnalyser.connect(self.audioContext.destination);
                 self.audioAnalyser.fftSize = 256;
                 self.audioSource.buffer = buffer; 
                 self.dataArray = new Uint8Array(self.audioAnalyser.frequencyBinCount);
@@ -83,7 +81,7 @@ export default class App {
     initScene() {
         //movement camera, not added to scene but used for calculator vectors which are passed to the shader
         this.movementCamera.lookAt(new THREE.Vector3(0.60,0.2,0.75));
-        this.movementCamera.position.set(1.0, 0.0, 0.0);
+        this.movementCamera.position.set(1.0, 6.0, 0.0);
         this.movementCamera.up.set(0.0, 1.0, 0.0);
         this.controls = this.createFlightControls()
 
@@ -141,6 +139,8 @@ export default class App {
             uContrast:  { type: "f", value: this.contrast },
             uSaturation:  { type: "f", value: this.saturation },
             uBrightness:  { type: "f", value: this.brightness },
+            uViewDistance:  { type: "f", value: this.viewDistance },
+            uHighDetail:  { type: "i", value: (this.highDetail ? 1 : 0) },
             amplitude:  { type: "fv1", value: [] } 
         };
         var mat = new THREE.ShaderMaterial( {
@@ -170,9 +170,17 @@ export default class App {
         this.gui = new dat.gui.GUI()
         this.gui.close()
         var self = this
-        this.qualityControl = this.gui.add(this, 'quality', 0.1, 2.0).step(0.1).name("Quality");
+        this.qualityControl = this.gui.add(this, 'quality', 0.1, 1.0).step(0.1).name("Quality");
         this.qualityControl.onChange(function(value) {
             self.resizePerformance()
+        });
+        this.viewDistanceControl = this.gui.add(this, 'viewDistance', 40.0, 2000.0).step(20.0).name("View Distance");
+        this.viewDistanceControl.onChange(function(value) {
+            self.uniforms.uViewDistance.value = value
+        });
+        this.highDetailControl = this.gui.add(this, 'highDetail').name("High Detail");
+        this.highDetailControl.onChange(function(value) {
+            self.uniforms.uHighDetail.value = (value ? 1 : 0)
         });
         this.contrastControl = this.gui.add(this, 'contrast', 0.1, 2.0).step(0.1).name("Contrast");
         this.contrastControl.onChange(function(value) {
@@ -219,7 +227,7 @@ export default class App {
                 }
                 break;
             // paused
-            case " ".charCodeAt(0):
+            case "g".charCodeAt(0):
                 this.controls.paused = !this.controls.paused 
                 break;
         }  
