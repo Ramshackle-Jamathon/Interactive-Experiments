@@ -24,7 +24,7 @@ export default class App {
         this.clock = new THREE.Clock()
         this.messageBox = document.getElementById('js_messages')
         this.showControls = function(){
-            (this.messageBox.classList.contains('active')? this.messageBox.classList.remove('active'):this.messageBox.classList.add('active'))
+            (this.messageBox.classList.contains('active') ? this.messageBox.classList.remove('active') : this.messageBox.classList.add('active'))
         }
         this.messageBox.classList.add('active')
     }

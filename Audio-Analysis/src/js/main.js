@@ -89,6 +89,7 @@
                 levels.push(cube);
             }   
         }
+        
         var material = new THREE.LineBasicMaterial({
             color: 0xffffff
         });

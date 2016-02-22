@@ -1,7 +1,9 @@
 {
   "name": "Three-Jumpstart",
-  "description": "Three.js Jumpstart",
-  "version": "0.0.1",
+  "description": "Lorn Landscape",
+  "version": "0.4.2",
+  "repository": "Ramshackle-Jamathon/Interactive-Experiments",
+  "license": "MIT",
   "scripts": {
     "start": "webpack-dev-server --progress --colors",
     "watch": "webpack --progress --colors --watch",
@@ -9,13 +11,18 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "css-loader": "*",
-    "node-sass": "*",
-    "sass-loader": "*",
-    "style-loader": "*",
-    "shader-loader": "*",
-    "three": "*",
-    "webpack": "*",
-    "webpack-dev-server": "*"
+    "babel-core": "^6.5.2",
+    "babel-loader": "^6.2.2",
+    "babel-preset-es2015": "^6.5.0",
+    "css-loader": "^0.23.1",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "node-bourbon": "^4.2.3",
+    "node-sass": "^3.4.2",
+    "sass-loader": "^3.1.2",
+    "shader-loader": "^1.1.4",
+    "style-loader": "^0.13.0",
+    "three": "^0.74.0",
+    "webpack": "^1.12.13",
+    "webpack-dev-server": "^1.14.1"
   }
 }

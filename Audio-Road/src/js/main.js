@@ -1,162 +1,168 @@
-(function(){
-    var THREE = require('./lib/three');
-    require('./lib/OrbitControls');
+var THREE = require('./lib/three');
+var Detector = require('./lib/Detector');
+var NProgress = require('./lib/nprogress');
+var Stats = require('./lib/Stats');
+var dat = require('./lib/datGUI.js');
 
-    var Detector = require('./lib/Detector');
-    var NProgress = require('./lib/nprogress');
-    var Stats = require('./lib/Stats');
-    var dat = require('./lib/datGUI');
-    var AudioHandler = require('./AudioHandler');
-    var audioData;
+import AudioHandler from './AudioHandler.js';
 
-    var gui = new dat.gui.GUI();
-    var audioHandler = new AudioHandler();
+export default class App {
+    /*
+     *  @constructs App
+     */
+    constructor() {
+        this.container = document.getElementById( 'container' )
+        this.camera = new THREE.Camera()
+        this.scene = new THREE.Scene()
+        this.renderer = new THREE.WebGLRenderer( { antialias: true } )
+        this.quality = 0.5
+        this.audioHandler = new AudioHandler()
+        this.messageBox = document.getElementById('js_messages')
+        this.showControls = function(){
+            (this.messageBox.classList.contains('active') ? this.messageBox.classList.remove('active') : this.messageBox.classList.add('active'))
+        }
+        this.messageBox.classList.add('active')
+    }
+    /*
+     * @function start
+     * @description runs the app
+     *
+     */
+    start(){
+        if ( ! Detector.webgl ){ 
+            Detector.addGetWebGLMessage();
+        } else {
+            NProgress.start();
+            this.initSound();
+            this.initScene();
+        }
+    }
 
-    var statsEnabled = true;
-    var container;
-    var camera, scene, renderer, stats;
-    var levels = [];
-    var waveform;
+    /*
+     *  @function initSound
+     *  @description loads and plays sample mp3
+     *
+     */
+    initSound() {
+        this.audioHandler.init();
+        this.audioHandler.onUseSample();
+    }
 
-    if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+    /*
+     *  @function initScene
+     *  @description adds objects to our scene and places the renderer into the dom
+     */
+    initScene() {
 
-    function init() {
 
-        document.onselectstart = function() {
-            return false;
+        //static camera placed infront of shaderplane
+        this.scene.add(this.camera);
+
+        //shaderplane
+        this.shaderPlane = this.createShaderPlane()
+        this.scene.add(this.shaderPlane);
+
+        //configuring canvas dom element
+        this.renderer.setPixelRatio( window.devicePixelRatio );
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
+        this.container.appendChild( this.renderer.domElement );
+
+        //TODO: touch controls
+        window.addEventListener( 'resize', this.onWindowResize.bind(this), false ); 
+        document.getElementById( 'js_close').addEventListener( 'click', this.showControls.bind(this));
+        
+        NProgress.done();
+
+        this.resizePerformance();
+        this.addHud();
+        //enter render loop
+        this.render(this);
+    } 
+
+    /*
+     *  @function createShaderPlane
+     *  @description creates our shader plane using our shader material
+     *
+     */
+    createShaderPlane () {
+        this.uniforms = {
+            uResolution: { type:"v2", value: new THREE.Vector2(window.innerWidth,window.innerHeight) }
         };
-        document.addEventListener('drop', onDocumentDrop, false);
-        document.addEventListener('dragover', onDocumentDragOver, false);
-
-        window.addEventListener( 'resize', onWindowResize, false );
-        createScene();
-        audioHandler.init();
-        audioHandler.onUseSample();
-        animate();
+        var mat = new THREE.ShaderMaterial( {
+                uniforms: this.uniforms,
+                vertexShader: require("../shaders/vert.glsl"),
+                fragmentShader: require("../shaders/frag.glsl")
+            });
+        mat.lights = false;
+        mat.shading = THREE.FlatShading;
+        var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(2, 2, 0), mat);
+        // The bg plane shouldn't care about the z-buffer.
+        mesh.material.depthTest = false;
+        mesh.material.depthWrite = false;
+        return mesh
     }
 
-    function createScene() {
-        renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true} );
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        renderer.autoClear = true;
+    /*
+     *  @function onWindowResize
+     *  @description runs on resize event
+     *
+     */
+    addHud () {
 
-        container = document.createElement( 'div' );
-        container.id = 'glCanvas'
-        document.body.appendChild( container );
+        this.stats = new Stats()
+        this.container.appendChild( this.stats.domElement );
 
-        camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 10000 );
-        camera.position.set(1200,0,600);
-        camera.up = new THREE.Vector3(0,0,1);
-        camera.lookAt(new THREE.Vector3(0,0,0));
-
-        controls = new THREE.OrbitControls( camera, renderer.domElement );
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.25;
-        controls.enableZoom = false;
-
-        scene = new THREE.Scene();
-        var light = new THREE.PointLight( 0xf3f3f3, 1, 0 );
-        light.position.set( 500, 500, 500 );
-        scene.add( light );
-
-        var light = new THREE.PointLight( 0xf3f3f3, 0.5, 0 );
-        light.position.set( -500, -500, -500 );
-        scene.add( light );
-
-
-
-        for (var i = -8; i < 8; i++) {
-            for (var a = -8; a < 8; a++) {
-                cube = new THREE.Mesh( new THREE.CubeGeometry( 35, 35, 35 ), new THREE.MeshPhongMaterial({ color: 0x000000}) );
-                cube.position.set(i * 40,a * 40, 0)
-                scene.add(cube);
-                levels.push(cube);
-            }   
-        }
-        var material = new THREE.LineBasicMaterial({
-            color: 0xffffff
+        this.gui = new dat.gui.GUI()
+        this.gui.close()
+        var self = this
+        this.qualityControl = this.gui.add(this, 'quality', 0.1, 1.0).step(0.1).name("Quality");
+        this.qualityControl.onChange(function(value) {
+            self.resizePerformance()
         });
-        var geometry = new THREE.Geometry();
-        for (var i = -256; i < 256; i++) {
-            geometry.vertices.push(
-                new THREE.Vector3( -340, i * 1.25 - 20, 200 )
-            )
+        this.infoControl = this.gui.add(this, 'showControls').name("Camera Controls");
+    }
 
+    /*
+     *  @function onWindowResize
+     *  @description runs on resize event
+     *
+     */
+    onWindowResize () {
+        //hardware acceleration for webkit
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
+        this.resizePerformance();
+        this.uniforms.uResolution.value.set(window.innerWidth,  window.innerHeight);
+    }
+
+
+
+    /*
+     *  @function resizePerformance
+     *  @description hack for resolution scalling of the canvas, Very important, The key to running on less powerful hardware
+     *
+     */
+    resizePerformance () {
+        this.renderer.setSize( window.innerWidth * this.quality, window.innerHeight * this.quality );
+        this.renderer.domElement.style.width =  window.innerWidth + 'px';
+        this.renderer.domElement.style.height = window.innerHeight + 'px';
+    }
+
+    /*
+     *  @function render
+     *  @description where it all comes together
+     *
+     */
+    render () {
+
+        //Stats Update
+        if(this.stats !== undefined){
+            this.stats.update();
         }
-        waveform = new THREE.Line( geometry, material );
-        scene.add(waveform);
 
+        this.audioData = this.audioHandler.update()
 
+        this.renderer.render(this.scene, this.camera);
 
-
-        container.appendChild( renderer.domElement );
-
-
-        if ( statsEnabled ) {
-
-            stats = new Stats();
-            container.appendChild( stats.domElement );
-
-        }
+        requestAnimationFrame(this.render.bind(this));
     }
-
-    function animate() {
-/*
-        for(var i = 0; i < binCount; i++) {
-            debugCtx.lineTo(i/binCount*chartW, waveData[i]*chartH/2 + chartH/2);
-        }
-*/
-        requestAnimationFrame( animate );
-        controls.update();
-        audioData = audioHandler.update()
-        if(typeof audioData !== 'undefined'){
-            for(var i = 0; i < audioData.waveData.length; i++) {
-                waveform.geometry.vertices[i].z = 200 + 100 * audioData.waveData[i]
-            }
-            waveform.geometry.verticesNeedUpdate = true
-            for (var i = 0; i < levels.length; i++) {
-                levels[i].scale.z = 1.0 + 8.0 * audioData.levelsData[i]
-                levels[i].material.color.r = 6 * 1 * audioData.beatCutOff
-                levels[i].material.color.b = 6 * 0.298 * audioData.beatCutOff
-                levels[i].material.color.g = 6 * 0.298 *audioData.beatCutOff
-            }
-        }
-        if ( statsEnabled ) stats.update();
-
-        render();
-
-
-    }
-
-    function render() {
-        renderer.clear();
-        renderer.render( scene, camera );
-
-    }
-
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize( window.innerWidth, window.innerHeight );
-    }
-    function onDocumentDragOver(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        return false;
-    }
-    //load dropped MP3
-    function onDocumentDrop(evt) {
-        console.log("dropped")
-        evt.stopPropagation();
-        evt.preventDefault();
-        audioHandler.onMP3Drop(evt);
-    }
-
-
-    document.addEventListener("DOMContentLoaded", function(event) { 
-       init();
-    });
-
-})();
+};

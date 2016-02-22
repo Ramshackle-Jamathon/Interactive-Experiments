@@ -69,7 +69,7 @@ float Terrain(in vec2 p)
         float ff = Noise(pos*.002);
         f += pow(abs(ff), 5.0)*275.-5.0;
     }
-    return f; //* (amplitude[47]);
+    return f * amplitude[47];
     //return length(p)-4.0;
     //return  cos(p.x/3.0) * cos(p.y/3.0) ;
 }

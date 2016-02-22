@@ -1,93 +1,88 @@
+export default class AudioHandler {
+    constructor() {
+		this.waveData = []; //waveform - from 0 - 1 . no sound is 0.5. Array [binCount]
+		this.levelsData = []; //levels of each frequecy - from 0 - 1 . no sound is 0. Array [levelsCount]
+		this.level = 0; // averaged normalized level from 0 - 1
+		this.bpmTime = 0; // bpmTime ranges from 0 to 1. 0 = on beat. Based on tap bpm
+		this.ratedBPMTime = 550;//time between beats (msec) multiplied by BPMRate
+		this.levelHistory = []; //last 256 ave norm levels
+		this.bpmStart = 0; 
 
-var AudioHandler = function() {
+		this.sampleAudioURL = "sounds/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_ClubHQ.mp3";
+		//var sampleAudioURL = "textures/recit24.flac";
+		this.BEAT_HOLD_TIME = 40; //num of frames to hold a beat
+		this.BEAT_DECAY_RATE = 0.98;
+		this.BEAT_MIN = 0.30; //a volume less than this is no beat
 
-	var waveData = []; //waveform - from 0 - 1 . no sound is 0.5. Array [binCount]
-	var levelsData = []; //levels of each frequecy - from 0 - 1 . no sound is 0. Array [levelsCount]
-	var level = 0; // averaged normalized level from 0 - 1
-	var bpmTime = 0; // bpmTime ranges from 0 to 1. 0 = on beat. Based on tap bpm
-	var ratedBPMTime = 550;//time between beats (msec) multiplied by BPMRate
-	var levelHistory = []; //last 256 ave norm levels
-	var bpmStart = 0; 
+		//variables
+		this.audioGain = 1.0
+		this.beatHold = 40
+		this.beatDecay = 0.97
+		//BPM STUFF
+		this.count = 0;
+		this.msecsFirst = 0;
+		this.msecsPrevious = 0;
+		this.msecsAvg = 633; //time between beats (msec)
+		
+		this.timer;
+		this.gotBeat = false;
+		this.beatCutOff = 0;
+		this.beatTime = 0;
 
-	var sampleAudioURL = "textures/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_ClubHQ.mp3";
-	//var sampleAudioURL = "textures/recit24.flac";
-	var BEAT_HOLD_TIME = 40; //num of frames to hold a beat
-	var BEAT_DECAY_RATE = 0.98;
-	var BEAT_MIN = 0.30; //a volume less than this is no beat
+		this.freqByteData; //bars - bar data is from 0 - 256 in 512 bins. no sound is 0;
+		this.timeByteData; //waveform - waveform data is from 0-256 for 512 bins. no sound is 128.
+		this.levelsCount = 256; //should be factor of 512
+		
+		this.binCount; //512
+		this.levelBins;
 
-	//variables
-	var audioGain = 1.0
-	var beatHold = 40
-	var beatDecay = 0.97
-	//BPM STUFF
-	var count = 0;
-	var msecsFirst = 0;
-	var msecsPrevious = 0;
-	var msecsAvg = 633; //time between beats (msec)
-	
-	var timer;
-	var gotBeat = false;
-	var beatCutOff = 0;
-	var beatTime = 0;
+		this.isPlayingAudio = false;
+		this.usingSample = true;
+		this.usingMic = false;
 
-	var freqByteData; //bars - bar data is from 0 - 256 in 512 bins. no sound is 0;
-	var timeByteData; //waveform - waveform data is from 0-256 for 512 bins. no sound is 128.
-	var levelsCount = 256; //should be factor of 512
-	
-	var binCount; //512
-	var levelBins;
+		this.source;
+		this.buffer;
+		this.audioBuffer;
+		this.dropArea;
+		this.audioContext;
+		this.analyser;
+    }
 
-	var isPlayingAudio = false;
-	var usingSample = true;
-	var usingMic = false;
+    init(){
+		this.audioContext = new window.AudioContext || new window.webkitAudioContext;
+		this.analyser = this.audioContext.createAnalyser();
+		this.analyser.smoothingTimeConstant = 0.8; //0<->1. 0 is no time smoothing
+		this.analyser.fftSize = 1024;
+		//this.analyser.connect(this.audioContext.destination);
+		this.binCount = this.analyser.frequencyBinCount; // = 512
 
-	var source;
-	var buffer;
-	var audioBuffer;
-	var dropArea;
-	var audioContext;
-	var analyser;
+		this.levelBins = Math.floor(this.binCount / this.levelsCount); //number of bins in each level
 
-	function init() {
-		//EVENT HANDLERS
-
-		audioContext = new window.AudioContext || new window.webkitAudioContext;
-		analyser = audioContext.createAnalyser();
-		analyser.smoothingTimeConstant = 0.8; //0<->1. 0 is no time smoothing
-		analyser.fftSize = 1024;
-		analyser.connect(audioContext.destination);
-		binCount = analyser.frequencyBinCount; // = 512
-
-		levelBins = Math.floor(binCount / levelsCount); //number of bins in each level
-
-		freqByteData = new Uint8Array(binCount); 
-		timeByteData = new Uint8Array(binCount);
+		this.freqByteData = new Uint8Array(this.binCount); 
+		this.timeByteData = new Uint8Array(this.binCount);
 
 		var length = 256;
 		for(var i = 0; i < length; i++) {
-		    levelHistory.push(0);
+		    this.levelHistory.push(0);
 		}
-	}
+    }
+    initSound(){
+		this.source = this.audioContext.createBufferSource();
+		this.source.connect(this.analyser);
+    }
+	loadSampleAudio() {
 
-	function initSound(){
-		source = audioContext.createBufferSource();
-		source.connect(analyser);
-	}
-
-	//load sample MP3
-	function loadSampleAudio() {
-		stopSound();
-
-		initSound();
+		this.stopSound();
+		this.initSound();
 		// Load asynchronously
 		var request = new XMLHttpRequest();
-		request.open("GET", sampleAudioURL, true);
+		request.open("GET", this.sampleAudioURL, true);
 		request.responseType = "arraybuffer";
-
+		var self = this;
 		request.onload = function() {
-			audioContext.decodeAudioData(request.response, function(buffer) {
-				audioBuffer = buffer;
-				startSound();
+			self.audioContext.decodeAudioData(request.response, function(buffer) {
+				self.audioBuffer = buffer;
+				self.startSound();
 			}, function(e) {
 				console.log(e);
 			});
@@ -96,90 +91,79 @@ var AudioHandler = function() {
 		};
 		request.send();
 	}
-
-	function onTogglePlay(){
-
-		if (isPlayingAudio){
-			stopSound()
+	onTogglePlay(){
+		if (this.isPlayingAudio){
+			this.stopSound()
 		} else {
-			startSound()
+			this.startSound()
+		}	
+	}
+	startSound(){
+		this.source.buffer = this.audioBuffer;
+		this.source.loop = true;
+		this.source.start(0.0);
+		this.isPlayingAudio = true;
+	}
+	stopSound(){
+		this.isPlayingAudio = false;
+		if (this.source) {
+			this.source.stop(0);
+			this.source.disconnect();
 		}
 	}
-
-	function startSound() {
-		source.buffer = audioBuffer;
-		source.loop = true;
-		source.start(0.0);
-		isPlayingAudio = true;
-		//startViz();
-	}
-
-	function stopSound(){
-		isPlayingAudio = false;
-		if (source) {
-			source.stop(0);
-			source.disconnect();
-		}
-	}
-
-	function onUseMic(){
-
-		if (usingMic){
-			usingSample = false;
-			getMicInput();
+	onUseMic(){
+		if (this.usingMic){
+			this.usingSample = false;
+			this.getMicInput();
 		}else{
-			stopSound();
+			this.stopSound();
 		}
 	}
-	
-	function onUseSample(){
-		if (usingSample){
-			loadSampleAudio();          
-			usingMic = false;
+	onUseSample(){
+		if (this.usingSample){
+			this.loadSampleAudio();          
+			this.usingMic = false;
 		}else{
-			stopSound();
+			this.stopSound();
 		}
 	}
-	//load dropped MP3
-	function onMP3Drop(evt) {
+	onMP3Drop(evt) {
 
 		//TODO - uncheck mic and sample in CP
 
-		usingSample = false;
-		usingMic = false;
+		this.usingSample = false;
+		this.usingMic = false;
 
-		stopSound();
+		this.stopSound();
 
-		initSound();
+		this.initSound();
 
 		var droppedFiles = evt.dataTransfer.files;
 		var reader = new FileReader();
+		var self = this.
 		reader.onload = function(fileEvent) {
 			var data = fileEvent.target.result;
-			onDroppedMP3Loaded(data);
+			self.onDroppedMP3Loaded(data);
 		};
 		reader.readAsArrayBuffer(droppedFiles[0]);
 	}
+	onDroppedMP3Loaded(data) {
 
-	//called from dropped MP3
-	function onDroppedMP3Loaded(data) {
-
-		if(audioContext.decodeAudioData) {
-			audioContext.decodeAudioData(data, function(buffer) {
-				audioBuffer = buffer;
-				startSound();
+		if(this.audioContext.decodeAudioData) {
+			this.audioContext.decodeAudioData(data, function(buffer) {
+				this.audioBuffer = buffer;
+				this.startSound();
 			}, function(e) {
 				console.log(e);
-			});
+			}).bind(this);
 		} else {
-			audioBuffer = audioContext.createBuffer(data, false );
-			startSound();
+			this.audioBuffer = this.audioContext.createBuffer(data, false );
+			this.startSound();
 		}
 	}
+	getMicInput() {
 
-	function getMicInput() {
-
-		stopSound();
+		this.stopSound();
 
 		//x-browser
 		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -193,14 +177,14 @@ var AudioHandler = function() {
 				function(stream) {
 
 					//reinit here or get an echo on the mic
-					source = audioContext.createBufferSource();
-					analyser = audioContext.createAnalyser();
-					analyser.fftSize = 1024;
-					analyser.smoothingTimeConstant = 0.3; 
+					this.source = this.audioContext.createBufferSource();
+					this.analyser = this.audioContext.createAnalyser();
+					this.analyser.fftSize = 1024;
+					this.analyser.smoothingTimeConstant = 0.3; 
 
-					microphone = audioContext.createMediaStreamSource(stream);
-					microphone.connect(analyser);
-					isPlayingAudio = true;
+					this.microphone = this.audioContext.createMediaStreamSource(stream);
+					this.microphone.connect(this.analyser);
+					this.isPlayingAudio = true;
 					// console.log("here");
 				},
 
@@ -208,76 +192,72 @@ var AudioHandler = function() {
 				function(err) {
 					alert("The following error occured: " + err);
 				}
-			);
+			).bind(this);
 			
 		}else{
 			alert("Could not getUserMedia");
 		}
 	}
-
-	function onBeat(){
-		gotBeat = true;
+	onBeat(){
+		this.gotBeat = true;
 	}
+	update(){
 
-	//called every frame
-	//update published viz data
-	function update(){
-
-		if (!isPlayingAudio) return;
+		if (!this.isPlayingAudio) return;
 
 		//GET DATA
-		analyser.getByteFrequencyData(freqByteData); //<-- bar chart
-		analyser.getByteTimeDomainData(timeByteData); // <-- waveform
+		this.analyser.getByteFrequencyData(this.freqByteData); //<-- bar chart
+		this.analyser.getByteTimeDomainData(this.timeByteData); // <-- waveform
 
 		//console.log(freqByteData);
 
 		//normalize waveform data
-		for(var i = 0; i < binCount; i++) {
-			waveData[i] = ((timeByteData[i] - 128) /128 )* audioGain;
+		for(var i = 0; i < this.binCount; i++) {
+			this.waveData[i] = ((this.timeByteData[i] - 128) /128 )* this.audioGain;
 		}
 		//TODO - cap levels at 1 and -1 ?
 
 		//normalize levelsData from freqByteData
-		for(var i = 0; i < levelsCount; i++) {
+		for(var i = 0; i < this.levelsCount; i++) {
 			var sum = 0;
-			for(var j = 0; j < levelBins; j++) {
-				sum += freqByteData[(i * levelBins) + j];
+			for(var j = 0; j < this.levelBins; j++) {
+				sum += this.freqByteData[(i * this.levelBins) + j];
 			}
-			levelsData[i] = sum / levelBins/256 * audioGain; //freqData maxs at 256
+			this.levelsData[i] = sum / this.levelBins/256 * this.audioGain; //freqData maxs at 256
 
 			//adjust for the fact that lower levels are percieved more quietly
 			//make lower levels smaller
-			levelsData[i] *=  1 + (i/levelsCount)/2;
+			this.levelsData[i] *=  1 + (i/this.levelsCount)/2;
 		}
 		//TODO - cap levels at 1?
 
 		//GET AVG LEVEL
 		var sum = 0;
-		for(var j = 0; j < levelsCount; j++) {
-			sum += levelsData[j];
+		for(var j = 0; j < this.levelsCount; j++) {
+			sum += this.levelsData[j];
 		}
 		
-		level = sum / levelsCount;
+		this.level = sum / this.levelsCount;
 
-		levelHistory.push(level);
-		levelHistory.shift(1);
+		this.levelHistory.push(this.level);
+		this.levelHistory.shift(1);
 
 		//BEAT DETECTION
-		if (level  > beatCutOff && level > BEAT_MIN){
-			onBeat();
-			beatCutOff = level *1.1;
-			beatTime = 0;
+		if (this.level  > this.beatCutOff && this.level > this.BEAT_MIN){
+			this.onBeat();
+			this.beatCutOff = this.level *1.1;
+			this.beatTime = 0;
 		}else{
-			if (beatTime <= beatHold){
-				beatTime ++;
+			if (this.beatTime <= this.beatHold){
+				this.beatTime ++;
 			}else{
-				beatCutOff *= BEAT_DECAY_RATE;
-				beatCutOff = Math.max(beatCutOff,BEAT_MIN);
+				this.beatCutOff *= this.BEAT_DECAY_RATE;
+				this.beatCutOff = Math.max(this.beatCutOff,this.BEAT_MIN);
 			}
 		}
 
 
-		bpmTime = (new Date().getTime() - bpmStart)/msecsAvg;
+		this.bpmTime = (new Date().getTime() - this.bpmStart)/this.msecsAvg;
 /*
 		console.log("waves: " + waveData)
 		console.log("levels: " + levelsData)
@@ -285,32 +265,12 @@ var AudioHandler = function() {
 
 */
 		return {
-			levelsData:levelsData,
-			bpmTime:bpmTime,
-			waveData:waveData,
-			gotBeat:gotBeat,
-			beatCutOff:beatCutOff,
-			beatTime:beatTime
+			levelsData:this.levelsData,
+			bpmTime:this.bpmTime,
+			waveData:this.waveData,
+			gotBeat:this.gotBeat,
+			beatCutOff:this.beatCutOff,
+			beatTime:this.beatTime
 		};
 	}
-
-	return {
-		onMP3Drop:onMP3Drop,
-		onUseMic:onUseMic,
-		onUseSample:onUseSample,
-		update:update,
-		init:init,
-		level:level,
-		levelsData:levelsData,
-		bpmTime:bpmTime,
-		waveData:waveData,
-		onTogglePlay:onTogglePlay
-	};
-
 };
-
-if ( typeof module === 'object' ) {
-
-	module.exports = AudioHandler;
-
-}
