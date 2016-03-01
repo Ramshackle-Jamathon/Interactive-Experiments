@@ -4,9 +4,7 @@
 // Lots of thanks to Iñigo(IQ) for his noise functions and David Hoskins for his terrain raymarching examples!
 
 uniform vec2 uResolution;
-uniform float wave[ 512 ];
-
-
+uniform sampler2D iChannel0;
 varying vec2 vUv;
 
 // returns the average of the vec2((uv.x-e, uv.x+e),uv.y)
@@ -51,9 +49,9 @@ vec4 osc(float mode,float offset, float amp, vec2 uv, vec2 dudv)
     
     float base_width = 2.0*dudv.y;
     
-    float height = amp*(getWaveformValue(uv.x,mode,dudv.x/iResolution.x)-0.5);
-    float heightderiv = amp*getWaveformDeriv(uv.x,mode,dudv.x/iResolution.x);
-    float final_width = dot(vec2(base_width,abs(dudv.x*0.6*heightderiv))/iResolution.xy,vec2(1.0,1.0));
+    float height = amp*(getWaveformValue(uv.x,mode,dudv.x/uResolution.x)-0.5);
+    float heightderiv = amp*getWaveformDeriv(uv.x,mode,dudv.x/uResolution.x);
+    float final_width = dot(vec2(base_width,abs(dudv.x*0.6*heightderiv))/uResolution.xy,vec2(1.0,1.0));
     float value = ((height-uv.y+offset)/final_width);
     float v = abs(value);
 
@@ -88,12 +86,29 @@ vec4 osc(float mode,float offset, float amp, vec2 uv, vec2 dudv)
 void main()
 {
     vec2 uv =(-1.0 + 2.0 *vUv); // get fragment location
-    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+    uv.x += 1.0; // correct for aspect ratio
+    uv.x *= 0.5;
+    //uv.y *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+        // first texture row is frequency data
+/*    float fft  = texture2D( iChannel0, vec2(uv.x,0.25) ).x; 
     
-    vec4 color = vec4(1,1,1,1);
+    // second texture row is the sound wave
+    float wave = texture2D( iChannel0, vec2(uv.x,0.75) ).x;
+    
+    // convert frequency to colors
+    vec3 col = vec3( fft, 4.0*fft*(1.0-fft), 1.0-fft ) * fft;
+
+    // add wave form on top 
+    col += 1.0 -  smoothstep( 0.0, 0.15, abs(wave - uv.y) );
+    
+    // output final color
+    gl_FragColor = vec4(col,1.0);*/
+    
+   vec4 color = vec4(1,1,1,1);
     color *= osc(1.0,0.83,0.33,uv,vec2(1.0));
-    color *= osc(0.0,0.50,0.33,uv,vec2(1.0));
-    color *= osc(0.0,0.17,0.33,vec2(pow(uv.x,2.0),uv.y),vec2(2.0*(uv.x),1.0));
+   // color *= osc(0.0,0.50,0.33,uv,vec2(1.0));
+    //color *= osc(0.0,0.17,0.33,vec2(pow(uv.x,2.0),uv.y),vec2(2.0*(uv.x),1.0));
 
     gl_FragColor = color;
 }

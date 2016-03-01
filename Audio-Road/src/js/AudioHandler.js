@@ -31,7 +31,7 @@ export default class AudioHandler {
 
 		this.freqByteData; //bars - bar data is from 0 - 256 in 512 bins. no sound is 0;
 		this.timeByteData; //waveform - waveform data is from 0-256 for 512 bins. no sound is 128.
-		this.levelsCount = 256; //should be factor of 512
+		this.levelsCount = 512; //should be factor of 512
 		
 		this.binCount; //512
 		this.levelBins;
@@ -262,7 +262,6 @@ export default class AudioHandler {
 		console.log("waves: " + waveData)
 		console.log("levels: " + levelsData)
 		console.log("bpmTime: " + bpmTime)
-
 */
 		return {
 			levelsData:this.levelsData,

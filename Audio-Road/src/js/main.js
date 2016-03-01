@@ -15,7 +15,7 @@ export default class App {
         this.camera = new THREE.Camera()
         this.scene = new THREE.Scene()
         this.renderer = new THREE.WebGLRenderer( { antialias: true } )
-        this.quality = 0.5
+        this.quality = 1.0
         this.audioHandler = new AudioHandler()
         this.messageBox = document.getElementById('js_messages')
         this.showControls = function(){
@@ -85,8 +85,17 @@ export default class App {
      *
      */
     createShaderPlane () {
+
+        this.texureData = new Float32Array(1024)
+        for(var i = 0; i < this.texureData.length; i++) {
+            this.texureData[i] = 0.0;
+        };  
+        this.audioTexture = new THREE.DataTexture(this.texureData, 512, 2, THREE.LuminanceFormat, THREE.FloatType);
+        this.audioTexture.needsUpdate = true;
+
         this.uniforms = {
-            uResolution: { type:"v2", value: new THREE.Vector2(window.innerWidth,window.innerHeight) }
+            uResolution: { type:"v2", value: new THREE.Vector2(window.innerWidth,window.innerHeight) },
+            iChannel0: { type:"t", value: this.audioTexture }
         };
         var mat = new THREE.ShaderMaterial( {
                 uniforms: this.uniforms,
@@ -94,7 +103,8 @@ export default class App {
                 fragmentShader: require("../shaders/frag.glsl")
             });
         mat.lights = false;
-        mat.shading = THREE.FlatShading;
+        mat.needsUpdate = true;
+        //mat.shading = THREE.FlatShading;
         var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(2, 2, 0), mat);
         // The bg plane shouldn't care about the z-buffer.
         mesh.material.depthTest = false;
@@ -115,7 +125,7 @@ export default class App {
         this.gui = new dat.gui.GUI()
         this.gui.close()
         var self = this
-        this.qualityControl = this.gui.add(this, 'quality', 0.1, 1.0).step(0.1).name("Quality");
+        this.qualityControl = this.gui.add(this, 'quality', 0.1, 2.0).step(0.1).name("Quality");
         this.qualityControl.onChange(function(value) {
             self.resizePerformance()
         });
@@ -146,7 +156,6 @@ export default class App {
         this.renderer.domElement.style.width =  window.innerWidth + 'px';
         this.renderer.domElement.style.height = window.innerHeight + 'px';
     }
-
     /*
      *  @function render
      *  @description where it all comes together
@@ -161,6 +170,25 @@ export default class App {
 
         this.audioData = this.audioHandler.update()
 
+        if(this.audioData !== undefined){
+            for(var i = 0; i < 512; i++) {
+                this.texureData[i] = this.audioData.levelsData[i]
+                this.texureData[i + 512] = this.audioData.waveData[i]
+            };
+        } else {
+            for(var i = 0; i < 1024; i++) {
+                this.texureData[i] = 0.0;
+            };  
+        }
+        this.audioTexture = new THREE.DataTexture(this.texureData, 512, 2, THREE.LuminanceFormat, THREE.FloatType)
+        //this.audioTexture.wrapS = THREE.MirroredRepeatWrapping;
+        //this.audioTexture.wrapT = THREE.MirroredRepeatWrapping;
+        //this.audioTexture.magFilter = THREE.NearestFilter;
+        //this.audioTexture.minFilter = THREE.NearestFilter;
+        this.audioTexture.repeat.set( 1, 1 );
+        this.audioTexture.needsUpdate = true;
+
+        this.uniforms.iChannel0.value = this.audioTexture
         this.renderer.render(this.scene, this.camera);
 
         requestAnimationFrame(this.render.bind(this));
