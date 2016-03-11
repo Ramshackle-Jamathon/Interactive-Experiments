@@ -10,20 +10,7 @@ varying vec2 vUv;
 // returns the average of the vec2((uv.x-e, uv.x+e),uv.y)
 float smootherSample(vec2 uv,float e) 
 {
-    e*=3.0; 
-    return (
-         texture2D(iChannel0,uv-vec2(e*-0.5,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*-0.4,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*-0.3,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*-0.2,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*-0.1,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*+0.0,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*+0.1,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*+0.2,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*+0.3,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*+0.4,0.0)).x
-        +texture2D(iChannel0,uv-vec2(e*+0.5,0.0)).x
-        )/11.0;
+    return texture2D(iChannel0,uv-vec2(e,0.0)).x;
 }
 
 float getWaveformValue(float x, float mode,float e)
@@ -89,26 +76,11 @@ void main()
     uv.x += 1.0; // correct for aspect ratio
     uv.x *= 0.5;
     //uv.y *= uResolution.x / uResolution.y; // correct for aspect ratio
-
-        // first texture row is frequency data
-/*    float fft  = texture2D( iChannel0, vec2(uv.x,0.25) ).x; 
     
-    // second texture row is the sound wave
-    float wave = texture2D( iChannel0, vec2(uv.x,0.75) ).x;
-    
-    // convert frequency to colors
-    vec3 col = vec3( fft, 4.0*fft*(1.0-fft), 1.0-fft ) * fft;
-
-    // add wave form on top 
-    col += 1.0 -  smoothstep( 0.0, 0.15, abs(wave - uv.y) );
-    
-    // output final color
-    gl_FragColor = vec4(col,1.0);*/
-    
-   vec4 color = vec4(1,1,1,1);
-    color *= osc(1.0,0.83,0.33,uv,vec2(1.0));
-   // color *= osc(0.0,0.50,0.33,uv,vec2(1.0));
-    //color *= osc(0.0,0.17,0.33,vec2(pow(uv.x,2.0),uv.y),vec2(2.0*(uv.x),1.0));
+    vec4 color = vec4(1,1,1,1);
+    color *= osc(1.0,0.8,0.33,uv,vec2(1.0));
+    color *= osc(0.0,0.1,0.33,uv,vec2(100.0));
+    color *= osc(0.0,-0.5,0.33,vec2(pow(uv.x,2.0),uv.y),vec2(2.0*(uv.x),1.0));
 
     gl_FragColor = color;
 }

@@ -3,7 +3,6 @@ var Detector = require('./lib/Detector');
 var NProgress = require('./lib/nprogress');
 var Stats = require('./lib/Stats');
 var dat = require('./lib/datGUI.js');
-
 import AudioHandler from './AudioHandler.js';
 
 export default class App {
@@ -53,8 +52,6 @@ export default class App {
      *  @description adds objects to our scene and places the renderer into the dom
      */
     initScene() {
-
-
         //static camera placed infront of shaderplane
         this.scene.add(this.camera);
 

@@ -8,7 +8,7 @@ export default class AudioHandler {
 		this.levelHistory = []; //last 256 ave norm levels
 		this.bpmStart = 0; 
 
-		this.sampleAudioURL = "sounds/How_Can_You_Swallow_So_Much_Sleep-Bombay_Bicycle_ClubHQ.mp3";
+		this.sampleAudioURL = "sounds/LouisTheChild.mp3";
 		//var sampleAudioURL = "textures/recit24.flac";
 		this.BEAT_HOLD_TIME = 40; //num of frames to hold a beat
 		this.BEAT_DECAY_RATE = 0.98;
@@ -53,7 +53,7 @@ export default class AudioHandler {
 		this.analyser = this.audioContext.createAnalyser();
 		this.analyser.smoothingTimeConstant = 0.8; //0<->1. 0 is no time smoothing
 		this.analyser.fftSize = 1024;
-		//this.analyser.connect(this.audioContext.destination);
+		this.analyser.connect(this.audioContext.destination);
 		this.binCount = this.analyser.frequencyBinCount; // = 512
 
 		this.levelBins = Math.floor(this.binCount / this.levelsCount); //number of bins in each level
