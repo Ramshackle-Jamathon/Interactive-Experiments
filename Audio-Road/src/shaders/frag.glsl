@@ -79,8 +79,8 @@ void main()
     
     vec4 color = vec4(1,1,1,1);
     color *= osc(1.0,0.8,0.33,uv,vec2(1.0));
-    color *= osc(0.0,0.1,0.33,uv,vec2(100.0));
-    color *= osc(0.0,-0.5,0.33,vec2(pow(uv.x,2.0),uv.y),vec2(2.0*(uv.x),1.0));
+    // color *= osc(0.0,0.1,0.33,uv,vec2(100.0));
+    // color *= osc(0.0,-0.5,0.33,vec2(pow(uv.x,2.0),uv.y),vec2(2.0*(uv.x),1.0));
 
     gl_FragColor = color;
 }

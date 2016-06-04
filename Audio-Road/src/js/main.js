@@ -20,7 +20,7 @@ export default class App {
         this.showControls = function(){
             (this.messageBox.classList.contains('active') ? this.messageBox.classList.remove('active') : this.messageBox.classList.add('active'))
         }
-        this.messageBox.classList.add('active')
+        //this.messageBox.classList.add('active')
     }
     /*
      * @function start

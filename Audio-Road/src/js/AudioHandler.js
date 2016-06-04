@@ -53,7 +53,7 @@ export default class AudioHandler {
 		this.analyser = this.audioContext.createAnalyser();
 		this.analyser.smoothingTimeConstant = 0.8; //0<->1. 0 is no time smoothing
 		this.analyser.fftSize = 1024;
-		this.analyser.connect(this.audioContext.destination);
+		//this.analyser.connect(this.audioContext.destination);
 		this.binCount = this.analyser.frequencyBinCount; // = 512
 
 		this.levelBins = Math.floor(this.binCount / this.levelsCount); //number of bins in each level
