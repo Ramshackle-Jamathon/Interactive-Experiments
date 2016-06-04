@@ -276,8 +276,8 @@ export default class App {
         }
 
         //Audio Data Update
-        this.audioAnalyser.getByteFrequencyData(this.dataArray);
         if(this.dataArray !== undefined){
+            this.audioAnalyser.getByteFrequencyData(this.dataArray);
             for(var i = 0; i < 50; i++) {
                 this.uniforms.amplitude.value[i] = -(this.dataArray[(i + 10) * 2] / 255) + 1;
             };
